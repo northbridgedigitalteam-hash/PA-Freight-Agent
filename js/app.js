@@ -29,6 +29,13 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     // Show initial results
     performSearch('');
+    
+    // Load news (slight delay to let page render first)
+    setTimeout(() => {
+        if (window.newsManager) {
+            window.newsManager.loadAllNews();
+        }
+    }, 1500);
 });
 
 // Load commodity data from CSV
@@ -54,20 +61,6 @@ function updateStats() {
     
     // Update commodity count
     commodityCount.textContent = `${allCommodities.length} commodities`;
-    
-    // Count unique varieties (if available in your CSV)
-    const varieties = new Set();
-    allCommodities.forEach(c => {
-        if (c.Variety_Code) varieties.add(c.Variety_Code);
-        if (c.Variety_Name) varieties.add(c.Variety_Name);
-    });
-    
-    // Update other stats if elements exist
-    const totalCommodities = document.getElementById('totalCommodities');
-    const totalVarieties = document.getElementById('totalVarieties');
-    
-    if (totalCommodities) totalCommodities.textContent = allCommodities.length;
-    if (totalVarieties) totalVarieties.textContent = varieties.size;
 }
 
 // Populate category filter dropdown
@@ -105,6 +98,14 @@ function setupEventListeners() {
         if (e.key === 'Enter') {
             performSearch(this.value);
         }
+    });
+    
+    // News tab switching
+    const newsTabs = document.querySelectorAll('#newsTabs button[data-bs-toggle="tab"]');
+    newsTabs.forEach(tab => {
+        tab.addEventListener('shown.bs.tab', function(event) {
+            // You could trigger specific source loading here if needed
+        });
     });
 }
 
