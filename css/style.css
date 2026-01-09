@@ -9,6 +9,7 @@
     --paxi-blue: #0d6efd;
     --paxi-warning: #ffc107;
     --paxi-danger: #dc3545;
+    --paxi-info: #0dcaf0;
 }
 
 /* Base Styles */
@@ -53,6 +54,48 @@ body {
 .card-header {
     border-radius: 9px 9px 0 0 !important;
     font-weight: 600;
+}
+
+/* News Cards */
+.news-card {
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.news-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+}
+
+.news-image {
+    height: 200px;
+    object-fit: cover;
+    border-radius: 8px 8px 0 0;
+    width: 100%;
+}
+
+.news-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.news-excerpt {
+    font-size: 0.9rem;
+    color: #666;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.news-meta {
+    font-size: 0.8rem;
+    color: #888;
 }
 
 /* Buttons */
@@ -116,12 +159,28 @@ body {
 }
 
 .badge.bg-info {
+    background-color: var(--paxi-info) !important;
+}
+
+.badge.bg-primary {
     background-color: var(--paxi-blue) !important;
 }
 
 /* Tables */
 .table-hover tbody tr:hover {
     background-color: rgba(25, 135, 84, 0.05);
+}
+
+/* Tabs */
+.nav-tabs .nav-link {
+    color: #666;
+    font-weight: 500;
+}
+
+.nav-tabs .nav-link.active {
+    color: var(--paxi-info);
+    border-bottom-color: var(--paxi-info);
+    font-weight: 600;
 }
 
 /* Footer */
@@ -134,6 +193,10 @@ footer {
 /* Modal */
 .modal-header.bg-success {
     background: linear-gradient(135deg, var(--paxi-green), var(--paxi-dark-green));
+}
+
+.modal-header.bg-info {
+    background: linear-gradient(135deg, var(--paxi-info), #0aa2c0);
 }
 
 /* Responsive */
@@ -155,6 +218,15 @@ footer {
     .card-header h4 {
         font-size: 1.2rem;
     }
+    
+    .news-image {
+        height: 150px;
+    }
+    
+    .news-title {
+        font-size: 1rem;
+        -webkit-line-clamp: 2;
+    }
 }
 
 /* Animations */
@@ -165,4 +237,13 @@ footer {
 
 .animate-in {
     animation: fadeIn 0.3s ease-out;
+}
+
+/* Spinner */
+.spinner-border.text-success {
+    color: var(--paxi-green) !important;
+}
+
+.spinner-border.text-info {
+    color: var(--paxi-info) !important;
 }
