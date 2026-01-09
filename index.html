@@ -3,43 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SA Freight Assistant | Perishable Cargo Hub</title>
-    <!-- Free CSS Framework -->
+    <title>PAXI | Producer Ally's Export Assistant</title>
+    <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- Animate.css -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <!-- Custom CSS -->
     <link rel="stylesheet" href="css/style.css">
-    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="assets/logo.png">
 </head>
 <body>
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-success shadow fixed-top">
         <div class="container">
             <a class="navbar-brand" href="#">
-                <i class="bi bi-box-seam"></i> SA Freight Assistant
+                <img src="assets/logo.png" height="40" class="d-inline-block align-top me-2">
+                <span class="brand-title">PAXI</span>
+                <small class="brand-subtitle d-none d-md-inline">Producer Ally's Export Assistant</small>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav">
+                <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link active" href="#hs-lookup">
-                            <i class="bi bi-search"></i> HS Code Lookup
+                        <a class="nav-link active" href="#commodity-database">
+                            <i class="bi bi-database"></i> Commodity Database
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#cutoff-tracker">
-                            <i class="bi bi-clock"></i> SI Cut-off
+                        <a class="nav-link" href="#transit-calculator">
+                            <i class="bi bi-clock-history"></i> Transit Calculator
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#calculators">
-                            <i class="bi bi-calculator"></i> Calculators
+                        <a class="nav-link" href="#resources">
+                            <i class="bi bi-link-45deg"></i> Resources
                         </a>
-                    </li>
+                    </nav-link>
                     <li class="nav-item">
-                        <a class="nav-link" href="#documents">
-                            <i class="bi bi-file-earmark-text"></i> Documents
+                        <a class="nav-link" href="#contact">
+                            <i class="bi bi-telephone"></i> Contact
                         </a>
                     </li>
                 </ul>
@@ -47,124 +54,351 @@
         </div>
     </nav>
 
+    <!-- Hero Section -->
+    <section class="hero-section mt-5 pt-5">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6">
+                    <h1 class="display-4 fw-bold text-success">
+                        <span class="text-warning">PAXI</span><br>
+                        Producer Ally's Export Assistant
+                    </h1>
+                    <p class="lead">Your complete solution for South African perishable cargo exports. HS codes, transit times, documentation requirements, and compliance in one place.</p>
+                    <div class="d-flex gap-3 mt-4">
+                        <a href="#commodity-database" class="btn btn-success btn-lg">
+                            <i class="bi bi-search"></i> Search Commodities
+                        </a>
+                        <a href="#transit-calculator" class="btn btn-outline-success btn-lg">
+                            <i class="bi bi-calculator"></i> Transit Calculator
+                        </a>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="card border-success shadow-lg animate__animated animate__fadeInRight">
+                        <div class="card-body text-center p-5">
+                            <i class="bi bi-box-seam display-1 text-success mb-4"></i>
+                            <h4>Quick Commodity Search</h4>
+                            <div class="input-group mt-3">
+                                <input type="text" class="form-control form-control-lg" 
+                                       id="heroSearch" placeholder="Try 'oranges' or '080510'">
+                                <button class="btn btn-success" onclick="heroSearch()">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </div>
+                            <div class="mt-3 text-muted small">
+                                <i class="bi bi-info-circle"></i> Search by HS code, commodity name, or destination
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Main Container -->
-    <div class="container mt-4">
-        <!-- Header -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="alert alert-success">
-                    <h4><i class="bi bi-geo-alt"></i> South African Perishable Export Assistant</h4>
-                    <p class="mb-0">HS Codes | SI Cut-offs | Documentation | Calculators</p>
+    <div class="container mt-5 pt-3">
+        <!-- Stats Cards -->
+        <div class="row mb-5" id="stats">
+            <div class="col-md-3 col-6">
+                <div class="card border-success text-center shadow-sm">
+                    <div class="card-body">
+                        <h2 class="display-6 text-success" id="totalCommodities">15</h2>
+                        <p class="text-muted mb-0">Commodities</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="card border-info text-center shadow-sm">
+                    <div class="card-body">
+                        <h2 class="display-6 text-info" id="totalDestinations">8</h2>
+                        <p class="text-muted mb-0">Destinations</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="card border-warning text-center shadow-sm">
+                    <div class="card-body">
+                        <h2 class="display-6 text-warning" id="totalRoutes">12</h2>
+                        <p class="text-muted mb-0">Shipping Routes</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="card border-danger text-center shadow-sm">
+                    <div class="card-body">
+                        <h2 class="display-6 text-danger" id="activeExports">24</h2>
+                        <p class="text-muted mb-0">Active Exports</p>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- HS Code Lookup Section -->
-       <!-- Commodity Database Section -->
-<div class="row" id="commodity-database">
-    <div class="col-lg-8">
-        <div class="card shadow">
-            <div class="card-header bg-success text-white">
-                <h5 class="mb-0"><i class="bi bi-database"></i> Perishable Commodity Database</h5>
-            </div>
+        <!-- Commodity Database -->
+        <div class="row" id="commodity-database">
+            <div class="col-12">
+                <div class="card shadow border-success">
+                    <div class="card-header bg-success text-white">
+                        <h4 class="mb-0">
+                            <i class="bi bi-database"></i> Perishable Commodity Database
+                            <span class="badge bg-light text-success ms-2">South African Exports</span>
+                        </h4>
                     </div>
                     <div class="card-body">
-                        <!-- Search Input -->
-                        <div class="input-group mb-3">
-                            <span class="input-group-text">
-                                <i class="bi bi-upc-scan"></i>
-                            </span>
-                            <input type="text" 
-                                   class="form-control form-control-lg" 
-                                   id="hsSearchInput" 
-                                   placeholder="Search by HS code, commodity, or description...">
-                            <button class="btn btn-warning" type="button" id="clearSearch">
-                                Clear
-                            </button>
+                        <!-- Search Section -->
+                        <div class="row mb-4">
+                            <div class="col-md-8">
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-success">
+                                        <i class="bi bi-search text-success"></i>
+                                    </span>
+                                    <input type="text" class="form-control form-control-lg border-success" 
+                                           id="commoditySearch" placeholder="Search by HS code, commodity name, scientific name, or destination...">
+                                    <button class="btn btn-success" onclick="clearSearch()">
+                                        <i class="bi bi-x-circle"></i> Clear
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="btn-group w-100" role="group">
+                                    <button class="btn btn-outline-success active" data-filter="all">All</button>
+                                    <button class="btn btn-outline-success" data-filter="fruit">Fruits</button>
+                                    <button class="btn btn-outline-success" data-filter="vegetable">Vegetables</button>
+                                    <button class="btn btn-outline-success" data-filter="citrus">Citrus</button>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Quick Filters -->
-                        <div class="row mb-3">
-                            <div class="col-md-3">
-                                <button class="btn btn-outline-primary btn-sm w-100 filter-btn" data-filter="fruit">
-                                    <i class="bi bi-apple"></i> Fruits
-                                </button>
-                            </div>
-                            <div class="col-md-3">
-                                <button class="btn btn-outline-success btn-sm w-100 filter-btn" data-filter="flower">
-                                    <i class="bi bi-flower1"></i> Flowers
-                                </button>
-                            </div>
-                            <div class="col-md-3">
-                                <button class="btn btn-outline-danger btn-sm w-100 filter-btn" data-filter="meat">
-                                    <i class="bi bi-egg-fried"></i> Meat/Fish
-                                </button>
-                            </div>
-                            <div class="col-md-3">
-                                <button class="btn btn-outline-info btn-sm w-100 filter-btn" data-filter="vegetable">
-                                    <i class="bi bi-tree"></i> Vegetables
-                                </button>
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-muted mb-3">
+                                    <i class="bi bi-funnel"></i> Quick Filters:
+                                </h6>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <button class="btn btn-sm btn-outline-success filter-chip" data-search="oranges">
+                                        <i class="bi bi-apple"></i> Oranges
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-info filter-chip" data-search="grapefruit">
+                                        <i class="bi bi-droplet"></i> Grapefruit
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-warning filter-chip" data-search="lemons">
+                                        <i class="bi bi-sun"></i> Lemons
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-primary filter-chip" data-search="EU">
+                                        <i class="bi bi-globe-europe-africa"></i> EU Destinations
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger filter-chip" data-search="pre-cooling MANDATORY">
+                                        <i class="bi bi-snow"></i> Pre-cooling Required
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-secondary filter-chip" data-search="0805">
+                                        <i class="bi bi-upc-scan"></i> Citrus HS Codes
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
                         <!-- Results Area -->
-                        <div id="hsResults" class="mt-3">
-                            <div class="text-center text-muted py-5">
-                                <i class="bi bi-search display-1"></i>
-                                <h5>Search for perishable HS codes</h5>
-                                <p>Enter a code (e.g., 080510) or commodity (e.g., oranges)</p>
+                        <div id="commodityResults">
+                            <div class="text-center py-5">
+                                <i class="bi bi-database display-1 text-muted opacity-25"></i>
+                                <h5 class="mt-3 text-muted">Search for Commodities</h5>
+                                <p>Enter a search term or use the quick filters above</p>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Quick Reference Sidebar -->
-            <div class="col-lg-4">
-                <div class="card shadow mb-3">
-                    <div class="card-header bg-info text-white">
-                        <h6 class="mb-0"><i class="bi bi-lightbulb"></i> Common SA Exports</h6>
+        <!-- Transit Calculator -->
+        <div class="row mt-5" id="transit-calculator">
+            <div class="col-12">
+                <div class="card shadow border-primary">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">
+                            <i class="bi bi-clock-history"></i> Port-to-Port Transit Time Calculator
+                            <span class="badge bg-light text-primary ms-2">Live Estimates</span>
+                        </h4>
                     </div>
                     <div class="card-body">
-                        <ul class="list-group list-group-flush">
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                Citrus Fruits
-                                <span class="badge bg-primary rounded-pill">0805</span>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                Table Grapes
-                                <span class="badge bg-primary rounded-pill">080610</span>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                Cut Flowers
-                                <span class="badge bg-primary rounded-pill">0603</span>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                Avocados
-                                <span class="badge bg-primary rounded-pill">080440</span>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                Wine
-                                <span class="badge bg-primary rounded-pill">2204</span>
-                            </li>
-                        </ul>
+                        <div class="row mb-4">
+                            <div class="col-md-3">
+                                <label class="form-label">Origin Port</label>
+                                <select class="form-select" id="originPort">
+                                    <option value="">Select origin</option>
+                                    <option value="ZACPT">Cape Town (CPT)</option>
+                                    <option value="ZADUR">Durban (DUR)</option>
+                                    <option value="ZAPLZ">Port Elizabeth (PLZ)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Destination Port</label>
+                                <select class="form-select" id="destinationPort">
+                                    <option value="">Select destination</option>
+                                    <option value="NLRTM">Rotterdam (RTM)</option>
+                                    <option value="BEANR">Antwerp (ANT)</option>
+                                    <option value="AEJEA">Jebel Ali (JEA)</option>
+                                    <option value="CNSHA">Shanghai (SHA)</option>
+                                    <option value="USPHL">Philadelphia (PHL)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Carrier</label>
+                                <select class="form-select" id="carrierSelect">
+                                    <option value="">Any Carrier</option>
+                                    <option value="MSC">MSC</option>
+                                    <option value="Maersk">Maersk</option>
+                                    <option value="CMA CGM">CMA CGM</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Loading Date</label>
+                                <input type="date" class="form-control" id="loadingDate">
+                            </div>
+                        </div>
+                        
+                        <div class="text-center mb-4">
+                            <button class="btn btn-success btn-lg px-5" onclick="calculateTransitTime()">
+                                <i class="bi bi-calculator"></i> Calculate Transit Time
+                            </button>
+                        </div>
+
+                        <!-- Results -->
+                        <div id="transitResults" class="d-none">
+                            <div class="card border-success">
+                                <div class="card-header bg-success text-white">
+                                    <h5 class="mb-0"><i class="bi bi-info-circle"></i> Transit Results</h5>
+                                </div>
+                                <div class="card-body" id="routeDetails">
+                                    <!-- Results will appear here -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- All Routes Table -->
+                        <div class="mt-5">
+                            <h5 class="border-bottom pb-2">
+                                <i class="bi bi-map text-success"></i> Common SA Export Routes
+                            </h5>
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead class="table-success">
+                                        <tr>
+                                            <th>Route</th>
+                                            <th>Carrier</th>
+                                            <th>Transit Days</th>
+                                            <th>Frequency</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="routesTable">
+                                        <!-- Will be populated -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
+            </div>
+        </div>
 
-                <!-- Stats Card -->
-                <div class="card shadow">
-                    <div class="card-header bg-secondary text-white">
-                        <h6 class="mb-0"><i class="bi bi-bar-chart"></i> Quick Stats</h6>
+        <!-- Resources Section -->
+        <div class="row mt-5" id="resources">
+            <div class="col-12">
+                <div class="card shadow border-warning">
+                    <div class="card-header bg-warning text-dark">
+                        <h4 class="mb-0">
+                            <i class="bi bi-link-45deg"></i> Essential Resources & References
+                            <span class="badge bg-light text-warning ms-2">Official Links</span>
+                        </h4>
                     </div>
                     <div class="card-body">
-                        <div class="row text-center">
-                            <div class="col-6">
-                                <h3 id="totalCodes">0</h3>
-                                <small class="text-muted">HS Codes</small>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="card h-100 border-success">
+                                    <div class="card-header bg-success text-white">
+                                        <h6 class="mb-0"><i class="bi bi-shield-check"></i> PPECB Resources</h6>
+                                    </div>
+                                    <div class="card-body" id="ppecbLinks">
+                                        <!-- PPECB links -->
+                                    </div>
+                                </div>
                             </div>
-                            <div class="col-6">
-                                <h3 id="activeCodes">0</h3>
-                                <small class="text-muted">Active Exports</small>
+                            <div class="col-md-4">
+                                <div class="card h-100 border-primary">
+                                    <div class="card-header bg-primary text-white">
+                                        <h6 class="mb-0"><i class="bi bi-building"></i> Government</h6>
+                                    </div>
+                                    <div class="card-body" id="govLinks">
+                                        <!-- Government links -->
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card h-100 border-info">
+                                    <div class="card-header bg-info text-white">
+                                        <h6 class="mb-0"><i class="bi bi-truck"></i> Carriers & Ports</h6>
+                                    </div>
+                                    <div class="card-body" id="carrierLinks">
+                                        <!-- Carrier links -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Resource Search -->
+                        <div class="mt-4">
+                            <div class="input-group input-group-lg">
+                                <input type="text" class="form-control" id="resourceSearch" 
+                                       placeholder="Search resources (e.g., 'cold treatment', 'phytosanitary')">
+                                <button class="btn btn-success" onclick="searchResources()">
+                                    <i class="bi bi-search"></i> Search
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact Section -->
+        <div class="row mt-5" id="contact">
+            <div class="col-12">
+                <div class="card shadow border-info">
+                    <div class="card-header bg-info text-white">
+                        <h4 class="mb-0">
+                            <i class="bi bi-telephone"></i> Contact & Support
+                            <span class="badge bg-light text-info ms-2">PAXI Team</span>
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5><i class="bi bi-geo-alt text-success"></i> Export Documentation Team</h5>
+                                <ul class="list-unstyled">
+                                    <li class="mb-2">
+                                        <i class="bi bi-envelope text-success"></i>
+                                        <strong>Email:</strong> docs@paxi-export.co.za
+                                    </li>
+                                    <li class="mb-2">
+                                        <i class="bi bi-telephone text-success"></i>
+                                        <strong>Phone:</strong> +27 21 123 4567
+                                    </li>
+                                    <li class="mb-2">
+                                        <i class="bi bi-clock text-success"></i>
+                                        <strong>Hours:</strong> Mon-Fri 07:00-17:00 SAST
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h5><i class="bi bi-headset text-primary"></i> Technical Support</h5>
+                                <p class="text-muted">For app issues, feature requests, or data corrections:</p>
+                                <a href="mailto:support@paxi-export.co.za" class="btn btn-outline-success">
+                                    <i class="bi bi-bug"></i> Report Issue
+                                </a>
+                                <a href="mailto:updates@paxi-export.co.za" class="btn btn-outline-primary">
+                                    <i class="bi bi-lightbulb"></i> Suggest Feature
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -173,15 +407,43 @@
         </div>
 
         <!-- Footer -->
-        <footer class="mt-5 pt-3 border-top text-center text-muted">
-            <p>SA Freight Assistant v1.0 | For South African Perishable Exporters</p>
-            <p class="small">
-                <i class="bi bi-shield-check"></i> Data sourced from SARS, Perishable Product Export Council & industry standards
-            </p>
+        <footer class="mt-5 pt-4 border-top">
+            <div class="row">
+                <div class="col-md-4">
+                    <h5 class="text-success">
+                        <img src="assets/logo.png" height="30" class="me-2"> PAXI
+                    </h5>
+                    <p class="text-muted small">
+                        Producer Ally's Export Assistant<br>
+                        Built for South African perishable exporters
+                    </p>
+                </div>
+                <div class="col-md-4">
+                    <h6>Quick Links</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="#commodity-database" class="text-decoration-none text-success">Commodity Database</a></li>
+                        <li><a href="#transit-calculator" class="text-decoration-none text-success">Transit Calculator</a></li>
+                        <li><a href="#resources" class="text-decoration-none text-success">Resources</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h6>Data Sources</h6>
+                    <p class="small text-muted">
+                        <i class="bi bi-shield-check"></i> PPECB Protocols<br>
+                        <i class="bi bi-building"></i> NDA Regulations<br>
+                        <i class="bi bi-globe"></i> Carrier Schedules
+                    </p>
+                </div>
+            </div>
+            <div class="text-center mt-4 pt-3 border-top">
+                <p class="text-muted small mb-0">
+                    &copy; 2024 PAXI Export Assistant v2.0 | Data updated: January 2024
+                </p>
+            </div>
         </footer>
     </div>
 
-    <!-- JavaScript Files -->
+    <!-- JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/data.js"></script>
     <script src="js/app.js"></script>
