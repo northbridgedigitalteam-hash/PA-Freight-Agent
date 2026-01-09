@@ -29,7 +29,6 @@ class CSVLoader {
             
         } catch (error) {
             console.error('Error loading CSV:', error);
-            // Fallback to sample data if CSV fails
             return this.loadSampleData();
         }
     }
@@ -39,7 +38,6 @@ class CSVLoader {
         const lines = csvText.split('\n').filter(line => line.trim() !== '');
         if (lines.length < 2) return [];
         
-        // Detect headers (handle different CSV formats)
         const headers = this.detectHeaders(lines[0]);
         const commodities = [];
         
@@ -54,7 +52,6 @@ class CSVLoader {
                 }
             });
             
-            // Add additional processing for your specific CSV structure
             commodity.id = this.generateId(commodity);
             commodities.push(commodity);
         }
@@ -62,18 +59,13 @@ class CSVLoader {
         return commodities;
     }
 
-    // Detect CSV headers (handle quotes, different delimiters)
     detectHeaders(firstLine) {
-        // Try to detect if headers are quoted
         if (firstLine.includes('"')) {
             return this.parseCSVLine(firstLine).map(h => h.trim().replace(/"/g, ''));
         }
-        
-        // Default comma separation
         return firstLine.split(',').map(h => h.trim());
     }
 
-    // Parse a CSV line, handling quoted values
     parseCSVLine(line) {
         const values = [];
         let current = '';
@@ -97,7 +89,6 @@ class CSVLoader {
         return values;
     }
 
-    // Generate unique ID for commodity
     generateId(commodity) {
         if (commodity.HS_Code) {
             return `commodity_${commodity.HS_Code}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -105,7 +96,6 @@ class CSVLoader {
         return `commodity_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     }
 
-    // Fallback sample data if CSV fails
     loadSampleData() {
         console.log('Loading sample data (CSV not available)');
         return [
@@ -134,7 +124,6 @@ class CSVLoader {
         ];
     }
 
-    // Search commodities
     searchCommodities(query, category = 'all') {
         if (!this.loaded || this.commodities.length === 0) {
             return [];
@@ -143,17 +132,14 @@ class CSVLoader {
         const searchTerm = query.toLowerCase().trim();
         
         return this.commodities.filter(commodity => {
-            // Category filter
             if (category !== 'all' && commodity.Category !== category) {
                 return false;
             }
             
-            // Empty search returns all filtered by category
             if (!searchTerm) {
                 return true;
             }
             
-            // Search across multiple fields
             return (
                 (commodity.HS_Code && commodity.HS_Code.includes(searchTerm)) ||
                 (commodity.Commodity_Name && commodity.Commodity_Name.toLowerCase().includes(searchTerm)) ||
@@ -166,12 +152,10 @@ class CSVLoader {
         });
     }
 
-    // Get commodity by HS code
     getCommodityByHSCode(hsCode) {
         return this.commodities.find(c => c.HS_Code === hsCode);
     }
 
-    // Get all unique categories
     getCategories() {
         const categories = new Set();
         this.commodities.forEach(c => {
@@ -180,12 +164,10 @@ class CSVLoader {
         return Array.from(categories);
     }
 
-    // Get statistics
     getStats() {
         return {
             total: this.commodities.length,
             categories: this.getCategories().length,
-            // Add more stats based on your CSV structure
         };
     }
 }
