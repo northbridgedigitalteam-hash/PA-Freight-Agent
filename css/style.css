@@ -1,6 +1,5 @@
 /* ============================================
-   PAXI - PRODUCER ALLY'S EXPORT ASSISTANT
-   Custom Styles
+   PAXI EXPORT ASSISTANT - STYLES
    ============================================ */
 
 :root {
@@ -10,75 +9,45 @@
     --paxi-blue: #0d6efd;
     --paxi-warning: #ffc107;
     --paxi-danger: #dc3545;
-    --paxi-gray: #6c757d;
-    --paxi-light-gray: #f8f9fa;
 }
 
 /* Base Styles */
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #f8fff8 0%, #f0f9ff 100%);
-    color: #333;
-    padding-top: 76px; /* For fixed navbar */
+    background-color: #f8f9fa;
+    padding-top: 76px;
 }
 
 /* Navigation */
 .navbar {
-    background: linear-gradient(135deg, var(--paxi-green), var(--paxi-dark-green)) !important;
-    box-shadow: 0 2px 15px rgba(25, 135, 84, 0.2);
+    background: linear-gradient(135deg, var(--paxi-green), var(--paxi-dark-green));
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
-.navbar-brand {
-    font-weight: 700;
-}
-
-.brand-title {
-    font-size: 1.5rem;
-    font-weight: 800;
-    color: white;
-}
-
-.brand-subtitle {
-    font-size: 0.85rem;
-    opacity: 0.9;
-    font-weight: 400;
-}
-
-.nav-link {
-    font-weight: 500;
-    padding: 0.5rem 1rem !important;
+.navbar-brand img {
     border-radius: 5px;
-    margin: 0 2px;
 }
 
-.nav-link:hover, .nav-link.active {
-    background-color: rgba(255, 255, 255, 0.15);
+.brand-text {
+    display: inline-block;
+    vertical-align: middle;
 }
 
-/* Hero Section */
-.hero-section {
-    background: linear-gradient(rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7)), 
-                url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M0,0 L100,0 L100,100 Z" fill="%23198754" opacity="0.05"/></svg>');
-    background-size: cover;
-    padding: 3rem 0;
-    border-radius: 15px;
-    margin-bottom: 2rem;
-}
-
-.hero-section h1 {
-    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
+.brand-text .fw-bold {
+    font-size: 1.4rem;
+    font-weight: 800;
 }
 
 /* Cards */
 .card {
     border-radius: 10px;
-    transition: all 0.3s ease;
-    border: 1px solid rgba(25, 135, 84, 0.1);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(25, 135, 84, 0.15) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1) !important;
 }
 
 .card-header {
@@ -88,15 +57,13 @@ body {
 
 /* Buttons */
 .btn-success {
-    background: linear-gradient(135deg, var(--paxi-green), var(--paxi-dark-green));
-    border: none;
-    font-weight: 500;
+    background-color: var(--paxi-green);
+    border-color: var(--paxi-green);
 }
 
 .btn-success:hover {
-    background: linear-gradient(135deg, var(--paxi-dark-green), #0d5132);
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(25, 135, 84, 0.3);
+    background-color: var(--paxi-dark-green);
+    border-color: var(--paxi-dark-green);
 }
 
 .btn-outline-success {
@@ -121,32 +88,12 @@ body {
     color: var(--paxi-dark-green);
 }
 
-/* Badges */
-.badge {
-    font-weight: 500;
-    padding: 0.4em 0.8em;
-}
-
-.bg-success {
-    background: linear-gradient(135deg, var(--paxi-green), var(--paxi-dark-green)) !important;
-}
-
-/* Filter Chips */
-.filter-chip {
-    border-radius: 20px;
-    padding: 0.25rem 1rem;
-    transition: all 0.2s;
-}
-
-.filter-chip:hover {
-    transform: scale(1.05);
-}
-
 /* Commodity Cards */
 .commodity-card {
     cursor: pointer;
     border-left: 4px solid var(--paxi-green);
     margin-bottom: 1rem;
+    transition: all 0.2s;
 }
 
 .commodity-card:hover {
@@ -154,130 +101,68 @@ body {
     background-color: rgba(25, 135, 84, 0.02);
 }
 
-/* Temperature Indicators */
-.temp-badge {
-    display: inline-block;
-    padding: 0.2rem 0.8rem;
-    border-radius: 15px;
-    font-size: 0.8rem;
-    font-weight: 600;
+.commodity-card .badge {
+    font-size: 0.8em;
 }
 
-.temp-chilled {
-    background: linear-gradient(135deg, #d1ecf1, #bee5eb);
-    color: #0c5460;
+/* Badge Colors */
+.badge.bg-success {
+    background-color: var(--paxi-green) !important;
 }
 
-.temp-frozen {
-    background: linear-gradient(135deg, #cce5ff, #b8daff);
-    color: #004085;
+.badge.bg-warning {
+    background-color: var(--paxi-warning) !important;
+    color: #212529;
 }
 
-.temp-ambient {
-    background: linear-gradient(135deg, #fff3cd, #ffeaa7);
-    color: #856404;
+.badge.bg-info {
+    background-color: var(--paxi-blue) !important;
 }
 
-/* Table Styling */
+/* Tables */
 .table-hover tbody tr:hover {
     background-color: rgba(25, 135, 84, 0.05);
 }
 
-.table-success {
-    background-color: rgba(25, 135, 84, 0.1) !important;
-}
-
-/* Resource Cards */
-#ppecbLinks .list-group-item,
-#govLinks .list-group-item,
-#carrierLinks .list-group-item {
-    border: none;
-    border-left: 3px solid transparent;
-    margin-bottom: 0.5rem;
-    border-radius: 5px;
-}
-
-#ppecbLinks .list-group-item {
-    border-left-color: var(--paxi-green);
-}
-
-#govLinks .list-group-item {
-    border-left-color: var(--paxi-blue);
-}
-
-#carrierLinks .list-group-item {
-    border-left-color: var(--paxi-warning);
-}
-
 /* Footer */
 footer {
-    background-color: var(--paxi-light-gray);
-    border-radius: 10px;
-    padding: 2rem;
-    margin-top: 3rem;
+    background-color: #f8f9fa;
+    border-radius: 5px;
+    margin-top: 2rem;
 }
 
-/* Animations */
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.animate-in {
-    animation: fadeInUp 0.5s ease-out;
+/* Modal */
+.modal-header.bg-success {
+    background: linear-gradient(135deg, var(--paxi-green), var(--paxi-dark-green));
 }
 
 /* Responsive */
 @media (max-width: 768px) {
-    .hero-section {
-        text-align: center;
-        padding: 2rem 1rem;
-    }
-    
-    .brand-subtitle {
-        display: block !important;
-        margin-top: 0.25rem;
-    }
-    
-    .btn-group.w-100 {
-        flex-wrap: wrap;
-    }
-    
-    .btn-group.w-100 .btn {
-        flex: 1;
-        min-width: 45%;
-        margin-bottom: 0.5rem;
-    }
-    
-    .filter-chip {
-        margin-bottom: 0.5rem;
-    }
-    
     body {
         padding-top: 66px;
     }
+    
+    .brand-text .d-none {
+        display: inline !important;
+        font-size: 0.8rem;
+        margin-left: 0.5rem;
+    }
+    
+    .input-group, .form-select {
+        margin-bottom: 10px;
+    }
+    
+    .card-header h4 {
+        font-size: 1.2rem;
+    }
 }
 
-/* Print Styles */
-@media print {
-    .navbar, footer, .btn, .no-print {
-        display: none !important;
-    }
-    
-    body {
-        padding-top: 0;
-        background: white !important;
-    }
-    
-    .card {
-        border: 1px solid #000 !important;
-        box-shadow: none !important;
-        page-break-inside: avoid;
-    }
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-in {
+    animation: fadeIn 0.3s ease-out;
 }
