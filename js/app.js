@@ -1,146 +1,207 @@
 // ============================================
-// FREIGHT ASSISTANT - MAIN APPLICATION
-// Commodity Database with PPECB Protocols
+// PAXI - MAIN APPLICATION
 // ============================================
 
-// State Management
-let currentCommodity = null;
-let searchResults = [];
+// Global State
+let currentSearchResults = [];
+let currentCommodityDetail = null;
 
 // DOM Elements
-const hsSearchInput = document.getElementById('hsSearchInput');
-const clearSearchBtn = document.getElementById('clearSearch');
-const hsResults = document.getElementById('hsResults');
-const totalCodesElement = document.getElementById('totalCodes');
-const activeCodesElement = document.getElementById('activeCodes');
-const filterButtons = document.querySelectorAll('.filter-btn');
+const commoditySearch = document.getElementById('commoditySearch');
+const commodityResults = document.getElementById('commodityResults');
+const routesTable = document.getElementById('routesTable');
 
-// Initialize App
+// Initialize Application
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Freight Assistant v2.0 loaded');
-    console.log('Commodities loaded:', commodities.length);
+    console.log('PAXI Export Assistant v2.0 initialized');
     
-    updateStats();
-    setupEventListeners();
-    displayQuickSearchTips();
+    // Initialize components
+    initStats();
+    initSearch();
+    initTransitCalculator();
+    initResources();
+    initEventListeners();
     
-    // Auto-focus search box
-    setTimeout(() => {
-        hsSearchInput.focus();
-    }, 500);
+    // Set default date
+    document.getElementById('loadingDate').value = new Date().toISOString().split('T')[0];
 });
 
-// Update Statistics
-function updateStats() {
-    totalCodesElement.textContent = commodities.length;
-    activeCodesElement.textContent = commodities.filter(c => c.treatments && Object.keys(c.treatments).length > 0).length;
+// Initialize Statistics
+function initStats() {
+    document.getElementById('totalCommodities').textContent = commodities.length;
+    document.getElementById('totalDestinations').textContent = countUniqueDestinations();
+    document.getElementById('totalRoutes').textContent = transitTimes.routes.length;
+    document.getElementById('activeExports').textContent = commodities.length * 2; // Example calculation
 }
 
-// Setup Event Listeners
-function setupEventListeners() {
-    // Search input with debounce (300ms delay)
-    let searchTimeout;
-    hsSearchInput.addEventListener('input', function(e) {
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(() => {
-            performSearch(e.target.value.trim());
-        }, 300);
+// Count unique destinations
+function countUniqueDestinations() {
+    const dests = new Set();
+    commodities.forEach(commodity => {
+        Object.keys(commodity.treatments || {}).forEach(dest => dests.add(dest));
+    });
+    return dests.size;
+}
+
+// Initialize Search
+function initSearch() {
+    // Hero search
+    document.getElementById('heroSearch').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') performSearch(this.value);
     });
     
-    // Clear search button
-    clearSearchBtn.addEventListener('click', function() {
-        hsSearchInput.value = '';
-        performSearch('');
-        hsSearchInput.focus();
-    });
-    
-    // Enter key to search
-    hsSearchInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            performSearch(this.value.trim());
-        }
-    });
+    // Main search
+    commoditySearch.addEventListener('input', debounce(function(e) {
+        performSearch(e.target.value.trim());
+    }, 300));
     
     // Filter buttons
-    filterButtons.forEach(button => {
-        button.addEventListener('click', function() {
+    document.querySelectorAll('[data-filter]').forEach(btn => {
+        btn.addEventListener('click', function() {
             const filter = this.getAttribute('data-filter');
-            filterByCategory(filter);
+            applyFilter(filter);
+            updateFilterButtons(this);
+        });
+    });
+    
+    // Quick filter chips
+    document.querySelectorAll('.filter-chip').forEach(chip => {
+        chip.addEventListener('click', function() {
+            const search = this.getAttribute('data-search');
+            commoditySearch.value = search;
+            performSearch(search);
         });
     });
 }
 
-// Perform Search with Multiple Criteria
+// Initialize Transit Calculator
+function initTransitCalculator() {
+    // Populate routes table
+    populateRoutesTable();
+}
+
+// Initialize Resources
+function initResources() {
+    populateResourceLinks();
+}
+
+// Initialize Event Listeners
+function initEventListeners() {
+    // Clear search
+    window.clearSearch = function() {
+        commoditySearch.value = '';
+        performSearch('');
+        commoditySearch.focus();
+    };
+    
+    // Hero search
+    window.heroSearch = function() {
+        const query = document.getElementById('heroSearch').value;
+        if (query) {
+            document.getElementById('commoditySearch').value = query;
+            performSearch(query);
+            document.getElementById('commodity-database').scrollIntoView({ behavior: 'smooth' });
+        }
+    };
+}
+
+// Debounce function for search
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+// Perform Search
 function performSearch(query) {
     if (!query) {
-        displayQuickSearchTips();
+        showEmptyState();
         return;
     }
     
     query = query.toLowerCase();
-    
-    // Enhanced search across multiple fields
-    const results = commodities.filter(item => {
+    const results = commodities.filter(commodity => {
         return (
-            // HS Code search
-            item.hs_code.includes(query) ||
-            // Common name search
-            item.common_name.toLowerCase().includes(query) ||
-            // Scientific name search
-            (item.scientific_name && item.scientific_name.toLowerCase().includes(query)) ||
-            // Variety search
-            (item.varieties && item.varieties.some(v => v.toLowerCase().includes(query))) ||
-            // Description search
-            item.hs_description.toLowerCase().includes(query) ||
-            // Destination search in treatments
-            (item.treatments && Object.keys(item.treatments).some(dest => dest.toLowerCase().includes(query))) ||
-            // Treatment type search
-            (item.treatments && Object.values(item.treatments).some(t => t.required.toLowerCase().includes(query)))
+            commodity.hs_code.includes(query) ||
+            commodity.common_name.toLowerCase().includes(query) ||
+            commodity.scientific_name.toLowerCase().includes(query) ||
+            commodity.afrikaans_name.toLowerCase().includes(query) ||
+            commodity.hs_description.toLowerCase().includes(query) ||
+            (commodity.varieties && commodity.varieties.some(v => v.toLowerCase().includes(query))) ||
+            (commodity.treatments && Object.keys(commodity.treatments).some(d => d.toLowerCase().includes(query)))
         );
     });
     
-    searchResults = results;
+    currentSearchResults = results;
     displaySearchResults(results, query);
+}
+
+// Apply Filter
+function applyFilter(filter) {
+    let results;
+    if (filter === 'all') {
+        results = commodities;
+    } else if (filter === 'citrus') {
+        results = commodities.filter(c => c.subcategory === 'citrus');
+    } else {
+        results = commodities.filter(c => c.category === filter);
+    }
+    
+    currentSearchResults = results;
+    displaySearchResults(results, filter);
+}
+
+// Update Filter Buttons
+function updateFilterButtons(activeButton) {
+    document.querySelectorAll('[data-filter]').forEach(btn => {
+        btn.classList.remove('active', 'btn-success');
+        btn.classList.add('btn-outline-success');
+    });
+    activeButton.classList.add('active', 'btn-success');
+    activeButton.classList.remove('btn-outline-success');
 }
 
 // Display Search Results
 function displaySearchResults(results, query) {
     if (results.length === 0) {
-        hsResults.innerHTML = `
-            <div class="alert alert-warning animate__animated animate__fadeIn">
-                <div class="d-flex">
-                    <div class="me-3">
-                        <i class="bi bi-search display-4 text-warning"></i>
-                    </div>
-                    <div>
-                        <h5>No commodities found</h5>
-                        <p class="mb-1">Your search "<strong>${query}</strong>" didn't match any commodities.</p>
-                        <p class="mb-0 small">Try: <code>080510</code>, <code>oranges</code>, <code>citrus</code>, or <code>EU</code></p>
-                    </div>
-                </div>
+        commodityResults.innerHTML = `
+            <div class="text-center py-5 animate-in">
+                <i class="bi bi-search display-1 text-muted opacity-50"></i>
+                <h4 class="mt-3 text-muted">No commodities found</h4>
+                <p>Your search for "${query}" didn't match any commodities.</p>
+                <button class="btn btn-success mt-2" onclick="clearSearch()">
+                    <i class="bi bi-arrow-clockwise"></i> Clear Search
+                </button>
             </div>
         `;
         return;
     }
     
     let html = `
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h6 class="text-success mb-0">
-                <i class="bi bi-check-circle-fill"></i> Found ${results.length} commodity${results.length > 1 ? 's' : ''}
-            </h6>
-            <div class="text-muted small">
-                <i class="bi bi-info-circle"></i> Click any result for detailed view
-            </div>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="text-success mb-0">
+                <i class="bi bi-check-circle"></i> ${results.length} commodity${results.length > 1 ? 'ies' : ''} found
+            </h5>
+            <small class="text-muted">Click any card for details</small>
         </div>
+        
+        <div class="row g-4">
     `;
     
-    results.forEach((item, index) => {
-        html += createCommodityCard(item, index);
+    results.forEach((commodity, index) => {
+        html += createCommodityCard(commodity, index);
     });
     
-    hsResults.innerHTML = html;
+    html += '</div>';
+    commodityResults.innerHTML = html;
     
-    // Add click handlers to each card
+    // Add click handlers
     document.querySelectorAll('.commodity-card').forEach(card => {
         card.addEventListener('click', function() {
             const commodityId = this.getAttribute('data-id');
@@ -149,58 +210,86 @@ function displaySearchResults(results, query) {
     });
 }
 
-// Create Commodity Card (Summary View)
-function createCommodityCard(item, index) {
-    const treatmentsCount = item.treatments ? Object.keys(item.treatments).length : 0;
+// Create Commodity Card
+function createCommodityCard(commodity, index) {
+    const destCount = commodity.treatments ? Object.keys(commodity.treatments).length : 0;
     
     return `
-        <div class="commodity-card card border-success mb-3 animate__animated animate__fadeInUp" 
-             style="animation-delay: ${index * 0.1}s"
-             data-id="${item.id}">
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-8">
-                        <div class="d-flex align-items-start mb-2">
-                            <div class="me-3">
-                                <span class="badge bg-success fs-6">${item.hs_code}</span>
-                            </div>
-                            <div>
-                                <h5 class="card-title mb-1">${item.common_name}</h5>
-                                <p class="card-text text-muted small mb-2">
-                                    <i class="bi bi-flower1"></i> ${item.scientific_name || 'Scientific name not specified'}
-                                </p>
-                                <p class="card-text">${item.hs_description}</p>
-                            </div>
+        <div class="col-md-6 col-lg-4">
+            <div class="commodity-card card h-100 animate-in" 
+                 style="animation-delay: ${index * 0.1}s"
+                 data-id="${commodity.id}">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <span class="badge bg-success">${commodity.hs_code}</span>
+                            <span class="badge bg-info ms-1">${commodity.subcategory}</span>
                         </div>
-                        
-                        <div class="mb-2">
-                            <span class="badge bg-info me-1">
-                                <i class="bi bi-thermometer-half"></i> ${item.temperature?.pulp_temp_range || 'N/A'}
-                            </span>
-                            <span class="badge bg-warning text-dark me-1">
-                                <i class="bi bi-shield-check"></i> ${treatmentsCount} destinations
-                            </span>
-                            <span class="badge bg-secondary me-1">
-                                <i class="bi bi-calendar-event"></i> ${item.seasonality?.peak_months?.join(', ') || 'Year-round'}
-                            </span>
-                        </div>
+                        <button class="btn btn-sm btn-outline-success" 
+                                onclick="event.stopPropagation(); copyToClipboard('${commodity.hs_code}')">
+                            <i class="bi bi-copy"></i>
+                        </button>
                     </div>
                     
-                    <div class="col-md-4">
-                        <div class="text-end">
-                            <div class="mb-2">
-                                <small class="text-muted d-block">PPECB Reference</small>
-                                <code class="bg-light p-1 rounded">${item.ppecb?.yellow_card_ref || 'Not specified'}</code>
+                    <h5 class="card-title">${commodity.common_name}</h5>
+                    <p class="card-text text-muted small">
+                        <i class="bi bi-flower1"></i> ${commodity.scientific_name}
+                    </p>
+                    
+                    <div class="mb-3">
+                        <span class="temp-badge temp-chilled">
+                            <i class="bi bi-thermometer-half"></i> ${commodity.temperature.pulp_temp_range}
+                        </span>
+                        <span class="badge bg-warning text-dark ms-2">
+                            <i class="bi bi-globe"></i> ${destCount} dest.
+                        </span>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center mt-auto">
+                        <small class="text-muted">
+                            <i class="bi bi-shield-check"></i> ${commodity.ppecb.yellow_card_ref}
+                        </small>
+                        <span class="badge bg-light text-success">
+                            View Details <i class="bi bi-arrow-right"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// Show Empty State
+function showEmptyState() {
+    commodityResults.innerHTML = `
+        <div class="text-center py-5">
+            <i class="bi bi-database display-1 text-success opacity-25"></i>
+            <h4 class="mt-3 text-success">Commodity Database</h4>
+            <p class="text-muted">Search for commodities using HS codes, names, or destinations</p>
+            
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <div class="card border-success">
+                        <div class="card-body">
+                            <h6><i class="bi bi-search"></i> Try Searching:</h6>
+                            <div class="d-flex flex-wrap gap-2 mt-3">
+                                <button class="btn btn-sm btn-outline-success" onclick="performSearch('080510')">080510</button>
+                                <button class="btn btn-sm btn-outline-success" onclick="performSearch('oranges')">Oranges</button>
+                                <button class="btn btn-sm btn-outline-success" onclick="performSearch('citrus')">Citrus</button>
+                                <button class="btn btn-sm btn-outline-success" onclick="performSearch('EU')">EU</button>
                             </div>
-                            <div>
-                                <button class="btn btn-sm btn-outline-success">
-                                    <i class="bi bi-arrow-right-circle"></i> View Details
-                                </button>
-                                <button class="btn btn-sm btn-outline-primary copy-hs-btn" 
-                                        onclick="event.stopPropagation(); copyToClipboard('${item.hs_code}')">
-                                    <i class="bi bi-copy"></i> Copy HS
-                                </button>
-                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card border-info">
+                        <div class="card-body">
+                            <h6><i class="bi bi-info-circle"></i> Database Info</h6>
+                            <ul class="list-unstyled small mb-0">
+                                <li><i class="bi bi-check-circle text-success"></i> ${commodities.length} commodities</li>
+                                <li><i class="bi bi-check-circle text-success"></i> PPECB protocols included</li>
+                                <li><i class="bi bi-check-circle text-success"></i> Destination-specific requirements</li>
+                            </ul>
                         </div>
                     </div>
                 </div>
@@ -209,387 +298,434 @@ function createCommodityCard(item, index) {
     `;
 }
 
-// Show Detailed Commodity View
+// Show Commodity Detail
 function showCommodityDetail(commodityId) {
     const commodity = commodities.find(c => c.id === commodityId);
     if (!commodity) return;
     
-    currentCommodity = commodity;
+    currentCommodityDetail = commodity;
     
-    // Create detailed HTML
-    let html = `
-        <div class="commodity-detail animate__animated animate__fadeIn">
-            <!-- Back Button -->
-            <div class="mb-4">
-                <button class="btn btn-outline-secondary" onclick="showSearchResults()">
-                    <i class="bi bi-arrow-left"></i> Back to Search
-                </button>
-            </div>
-            
-            <!-- Commodity Header -->
-            <div class="card border-success mb-4">
-                <div class="card-header bg-success text-white">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h4 class="mb-0">
-                                <span class="badge bg-light text-dark fs-5 me-2">${commodity.hs_code}</span>
-                                ${commodity.common_name}
-                            </h4>
-                            <p class="mb-0 small opacity-75">
-                                ${commodity.scientific_name} • ${commodity.hs_description}
-                            </p>
-                        </div>
-                        <button class="btn btn-light" onclick="printCommodityDetails()">
-                            <i class="bi bi-printer"></i> Print
-                        </button>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <!-- Basic Info -->
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <h6><i class="bi bi-info-circle text-success"></i> Basic Information</h6>
-                            <table class="table table-sm">
-                                <tr>
-                                    <th width="40%">Afrikaans Name:</th>
-                                    <td>${commodity.afrikaans_name || 'N/A'}</td>
-                                </tr>
-                                <tr>
-                                    <th>Varieties:</th>
-                                    <td>${commodity.varieties ? commodity.varieties.join(', ') : 'Not specified'}</td>
-                                </tr>
-                                <tr>
-                                    <th>Category:</th>
-                                    <td><span class="badge bg-success">${commodity.category}</span> / 
-                                        <span class="badge bg-info">${commodity.subcategory}</span></td>
-                                </tr>
-                                <tr>
-                                    <th>Season (SA):</th>
-                                    <td>${commodity.seasonality?.northern_hemisphere || 'N/A'}</td>
-                                </tr>
-                            </table>
-                        </div>
-                        <div class="col-md-6">
-                            <h6><i class="bi bi-shield-check text-success"></i> PPECB Protocols</h6>
-                            <div class="alert alert-light border-success">
-                                <strong>Yellow Card:</strong> ${commodity.ppecb?.yellow_card_ref || 'Not specified'}<br>
-                                <strong>Protocol:</strong> ${commodity.ppecb?.protocol_version || 'N/A'}<br>
-                                <strong>Loading:</strong> ${commodity.ppecb?.loading_protocol || 'Standard protocol'}
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Temperature & Storage -->
-                    <div class="card mb-4 border-info">
-                        <div class="card-header bg-info text-white">
-                            <h6 class="mb-0"><i class="bi bi-thermometer-half"></i> Temperature & Storage Requirements</h6>
-                        </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-3 text-center">
-                                    <div class="display-6 text-primary">${commodity.temperature?.pulp_temp_range || 'N/A'}</div>
-                                    <small class="text-muted">Pulp Temperature Range</small>
-                                </div>
-                                <div class="col-md-3 text-center">
-                                    <div class="display-6 text-success">${commodity.temperature?.humidity || 'N/A'}</div>
-                                    <small class="text-muted">Relative Humidity</small>
-                                </div>
-                                <div class="col-md-3 text-center">
-                                    <div class="display-6 text-warning">${commodity.temperature?.max_storage_days || 'N/A'}</div>
-                                    <small class="text-muted">Max Storage Days</small>
-                                </div>
-                                <div class="col-md-3 text-center">
-                                    <div class="display-6 text-danger">${commodity.temperature?.chilling_injury_threshold || 'N/A'}</div>
-                                    <small class="text-muted">Chilling Injury Temp</small>
-                                </div>
-                            </div>
-                            <div class="mt-3">
-                                <strong>Notes:</strong> ${commodity.temperature?.notes || 'Maintain consistent temperature throughout transit'}
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Destination Requirements -->
-                    <h5 class="border-bottom pb-2 mb-3">
-                        <i class="bi bi-globe text-success"></i> Destination-Specific Requirements
-                    </h5>
-                    
-                    <div class="accordion" id="destinationAccordion">
-    `;
+    // Create detail modal
+    const modalHtml = createCommodityDetailModal(commodity);
     
-    // Add each destination requirement
+    // Remove existing modal
+    const existingModal = document.getElementById('commodityDetailModal');
+    if (existingModal) existingModal.remove();
+    
+    // Add new modal
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    const modal = new bootstrap.Modal(document.getElementById('commodityDetailModal'));
+    modal.show();
+}
+
+// Create Commodity Detail Modal
+function createCommodityDetailModal(commodity) {
+    let treatmentsHtml = '';
     if (commodity.treatments) {
-        Object.entries(commodity.treatments).forEach(([dest, treatment], index) => {
-            const destInfo = destinations[dest] || { full_name: dest };
-            const isFirst = index === 0;
-            
-            html += `
-                <div class="accordion-item">
-                    <h2 class="accordion-header">
-                        <button class="accordion-button ${isFirst ? '' : 'collapsed'}" 
-                                type="button" 
-                                data-bs-toggle="collapse" 
-                                data-bs-target="#collapse${dest}${commodity.id}">
-                            <span class="badge bg-primary me-2">${dest}</span>
-                            ${destInfo.full_name}
-                            <span class="ms-auto badge ${treatment.pre_cooling?.includes('MANDATORY') ? 'bg-danger' : 'bg-warning'}">
-                                ${treatment.pre_cooling || 'Check pre-cooling'}
+        Object.entries(commodity.treatments).forEach(([dest, treatment]) => {
+            treatmentsHtml += `
+                <div class="card mb-2">
+                    <div class="card-body">
+                        <h6 class="card-title">
+                            <span class="badge bg-primary">${dest}</span>
+                            ${treatment.required}
+                        </h6>
+                        <p class="card-text small mb-1">
+                            <strong>Protocol:</strong> ${treatment.protocol}
+                        </p>
+                        <p class="card-text small mb-1">
+                            <strong>Pulp Temp:</strong> ${treatment.pulp_temp}
+                        </p>
+                        <p class="card-text small mb-0">
+                            <strong>Pre-cooling:</strong> 
+                            <span class="badge ${treatment.pre_cooling === 'MANDATORY' ? 'bg-danger' : 'bg-warning'}">
+                                ${treatment.pre_cooling}
                             </span>
-                        </button>
-                    </h2>
-                    <div id="collapse${dest}${commodity.id}" 
-                         class="accordion-collapse collapse ${isFirst ? 'show' : ''}" 
-                         data-bs-parent="#destinationAccordion">
-                        <div class="accordion-body">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <table class="table table-sm">
-                                        <tr>
-                                            <th width="40%">Treatment Required:</th>
-                                            <td><strong class="text-success">${treatment.required}</strong></td>
-                                        </tr>
-                                        <tr>
-                                            <th>Protocol:</th>
-                                            <td>${treatment.protocol}</td>
-                                        </tr>
-                                        <tr>
-                                            <th>Pulp Temp:</th>
-                                            <td><code>${treatment.pulp_temp}</code></td>
-                                        </tr>
-                                        <tr>
-                                            <th>Pre-cooling:</th>
-                                            <td>
-                                                <span class="badge ${treatment.pre_cooling?.includes('MANDATORY') ? 'bg-danger' : 'bg-warning'}">
-                                                    ${treatment.pre_cooling}
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    </table>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="alert alert-light border">
-                                        <strong><i class="bi bi-file-text"></i> Required Documents:</strong>
-                                        <ul class="mb-0 mt-2">
-                                            ${treatment.documentation?.map(doc => `<li>${doc}</li>`).join('') || '<li>Standard documentation</li>'}
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="mt-2">
-                                <strong>Notes:</strong> ${treatment.notes || 'Standard protocol applies'}
-                            </div>
-                        </div>
+                        </p>
                     </div>
                 </div>
             `;
         });
-    } else {
+    }
+    
+    return `
+        <div class="modal fade" id="commodityDetailModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header bg-success text-white">
+                        <h5 class="modal-title">
+                            <i class="bi bi-box-seam"></i> ${commodity.common_name}
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <table class="table table-sm">
+                                    <tr>
+                                        <th>HS Code:</th>
+                                        <td><span class="badge bg-success">${commodity.hs_code}</span></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Scientific Name:</th>
+                                        <td>${commodity.scientific_name}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Afrikaans:</th>
+                                        <td>${commodity.afrikaans_name}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Varieties:</th>
+                                        <td>${commodity.varieties.join(', ')}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card border-success">
+                                    <div class="card-body">
+                                        <h6><i class="bi bi-thermometer-half"></i> Temperature Requirements</h6>
+                                        <p class="mb-1"><strong>Pulp Temp:</strong> ${commodity.temperature.pulp_temp_range}</p>
+                                        <p class="mb-1"><strong>Transit Temp:</strong> ${commodity.temperature.transit_temp}</p>
+                                        <p class="mb-1"><strong>Humidity:</strong> ${commodity.temperature.humidity}</p>
+                                        <p class="mb-0"><strong>Max Storage:</strong> ${commodity.temperature.max_storage}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <h6 class="mt-4"><i class="bi bi-shield-check"></i> PPECB Protocols</h6>
+                        <div class="alert alert-success">
+                            <strong>Yellow Card:</strong> ${commodity.ppecb.yellow_card_ref}<br>
+                            <strong>Protocol:</strong> ${commodity.ppecb.protocol_version}<br>
+                            <strong>Loading:</strong> ${commodity.ppecb.loading_protocol}
+                        </div>
+                        
+                        <h6 class="mt-4"><i class="bi bi-globe"></i> Destination Requirements</h6>
+                        <div id="treatmentsList">
+                            ${treatmentsHtml || '<p class="text-muted">No destination requirements configured.</p>'}
+                        </div>
+                        
+                        <div class="mt-4 text-center">
+                            <button class="btn btn-success" onclick="printCommodityDetails('${commodity.id}')">
+                                <i class="bi bi-printer"></i> Print Details
+                            </button>
+                            <button class="btn btn-outline-success ms-2" 
+                                    onclick="copyCommodityDetails('${commodity.id}')">
+                                <i class="bi bi-clipboard"></i> Copy to Clipboard
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// Populate Routes Table
+function populateRoutesTable() {
+    if (!routesTable) return;
+    
+    let html = '';
+    transitTimes.routes.forEach(route => {
+        const statusClass = getStatusClass(route.status);
         html += `
+            <tr>
+                <td>
+                    <strong>${route.origin}</strong><br>
+                    <i class="bi bi-arrow-right text-success"></i><br>
+                    <strong>${route.destination}</strong>
+                </td>
+                <td><span class="badge bg-info">${route.carrier}</span></td>
+                <td><strong class="text-success">${route.transit_days}</strong> days</td>
+                <td>${route.frequency}</td>
+                <td><span class="badge ${statusClass}">${route.status}</span></td>
+            </tr>
+        `;
+    });
+    
+    routesTable.innerHTML = html;
+}
+
+// Get Status Class
+function getStatusClass(status) {
+    switch(status.toLowerCase()) {
+        case 'normal': return 'bg-success';
+        case 'busy': return 'bg-warning';
+        case 'congested': return 'bg-danger';
+        default: return 'bg-secondary';
+    }
+}
+
+// Calculate Transit Time
+window.calculateTransitTime = function() {
+    const origin = document.getElementById('originPort').value;
+    const destination = document.getElementById('destinationPort').value;
+    const carrier = document.getElementById('carrierSelect').value;
+    const loadingDate = document.getElementById('loadingDate').value;
+    
+    if (!origin || !destination) {
+        alert('Please select both origin and destination ports');
+        return;
+    }
+    
+    // Find route
+    let route = transitTimes.routes.find(r => 
+        r.origin_code === origin && 
+        r.destination_code === destination
+    );
+    
+    if (carrier && route && route.carrier !== carrier) {
+        route = transitTimes.routes.find(r => 
+            r.origin_code === origin && 
+            r.destination_code === destination &&
+            r.carrier === carrier
+        );
+    }
+    
+    if (!route) {
+        document.getElementById('routeDetails').innerHTML = `
             <div class="alert alert-warning">
-                <i class="bi bi-exclamation-triangle"></i> No destination-specific requirements configured.
+                <i class="bi bi-exclamation-triangle"></i> No direct route found.
+                Please check the routes table for available options.
+            </div>
+        `;
+    } else {
+        // Calculate dates
+        const loadDate = new Date(loadingDate);
+        const arrivalDate = new Date(loadDate);
+        arrivalDate.setDate(arrivalDate.getDate() + route.transit_days);
+        
+        const congestion = transitTimes.portCongestion[destination] || { status: 'Normal', delay_days: 0 };
+        
+        document.getElementById('routeDetails').innerHTML = `
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>Route Information</h6>
+                    <table class="table table-sm">
+                        <tr><td><strong>Route:</strong></td><td>${route.origin} → ${route.destination}</td></tr>
+                        <tr><td><strong>Carrier:</strong></td><td>${route.carrier}</td></tr>
+                        <tr><td><strong>Transit Time:</strong></td><td>${route.transit_days} days</td></tr>
+                        <tr><td><strong>Frequency:</strong></td><td>${route.frequency}</td></tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <h6>Schedule</h6>
+                    <table class="table table-sm">
+                        <tr><td><strong>Load Date:</strong></td><td>${loadDate.toDateString()}</td></tr>
+                        <tr><td><strong>Arrival Date:</strong></td><td>${arrivalDate.toDateString()}</td></tr>
+                        <tr><td><strong>Port Status:</strong></td>
+                            <td><span class="badge ${getStatusClass(congestion.status)}">${congestion.status}</span>
+                            ${congestion.delay_days > 0 ? `(+${congestion.delay_days} days)` : ''}</td>
+                        </tr>
+                    </table>
+                </div>
             </div>
         `;
     }
     
-    html += `
-                    </div> <!-- End accordion -->
-                    
-                    <!-- Quality Standards -->
-                    <div class="card mt-4 border-warning">
-                        <div class="card-header bg-warning text-dark">
-                            <h6 class="mb-0"><i class="bi bi-clipboard-check"></i> Quality Standards</h6>
-                        </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <strong>Sizing:</strong><br>
-                                    ${commodity.quality?.sizing?.standard || 'N/A'}<br>
-                                    <small class="text-muted">${commodity.quality?.sizing?.grades?.join(', ') || ''}</small>
-                                </div>
-                                <div class="col-md-4">
-                                    <strong>Brix/Acid:</strong><br>
-                                    Min: ${commodity.quality?.brix?.minimum || 'N/A'}<br>
-                                    Optimum: ${commodity.quality?.brix?.optimum || 'N/A'}
-                                </div>
-                                <div class="col-md-4">
-                                    <strong>Defects Allowed:</strong><br>
-                                    Total: ${commodity.quality?.defects?.max_total || 'N/A'}<br>
-                                    Decay: ${commodity.quality?.defects?.max_decay || 'N/A'}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Special Notes -->
-                    ${commodity.special_notes && commodity.special_notes.length > 0 ? `
-                    <div class="alert alert-danger mt-4">
-                        <h6><i class="bi bi-exclamation-octagon"></i> Special Notes & Warnings</h6>
-                        <ul class="mb-0">
-                            ${commodity.special_notes.map(note => `<li>${note}</li>`).join('')}
-                        </ul>
-                    </div>
-                    ` : ''}
-                </div>
-            </div>
-        </div>
-    `;
+    document.getElementById('transitResults').classList.remove('d-none');
+};
+
+// Populate Resource Links
+function populateResourceLinks() {
+    // PPECB Links
+    const ppecbContainer = document.getElementById('ppecbLinks');
+    if (ppecbContainer) {
+        ppecbContainer.innerHTML = resourceLinks.ppecb.map(link => `
+            <a href="${link.url}" target="_blank" class="d-block mb-2 p-2 border-start border-success border-3 bg-light text-decoration-none">
+                <strong>${link.title}</strong><br>
+                <small class="text-muted">${link.description}</small>
+            </a>
+        `).join('');
+    }
     
-    hsResults.innerHTML = html;
+    // Government Links
+    const govContainer = document.getElementById('govLinks');
+    if (govContainer) {
+        govContainer.innerHTML = resourceLinks.nda.map(link => `
+            <a href="${link.url}" target="_blank" class="d-block mb-2 p-2 border-start border-primary border-3 bg-light text-decoration-none">
+                <strong>${link.title}</strong><br>
+                <small class="text-muted">${link.description}</small>
+            </a>
+        `).join('');
+    }
+    
+    // Carrier Links
+    const carrierContainer = document.getElementById('carrierLinks');
+    if (carrierContainer) {
+        carrierContainer.innerHTML = resourceLinks.carriers.map(link => `
+            <a href="${link.url}" target="_blank" class="d-block mb-2 p-2 border-start border-warning border-3 bg-light text-decoration-none">
+                <strong>${link.title}</strong><br>
+                <small class="text-muted">${link.description}</small>
+            </a>
+        `).join('');
+    }
 }
 
-// Show Search Results Again
-function showSearchResults() {
-    displaySearchResults(searchResults, '');
-}
-
-// Filter by Category
-function filterByCategory(category) {
-    const results = commodities.filter(item => 
-        item.category.toLowerCase() === category.toLowerCase() ||
-        item.subcategory?.toLowerCase() === category.toLowerCase()
+// Search Resources
+window.searchResources = function() {
+    const query = document.getElementById('resourceSearch').value.toLowerCase();
+    if (!query) return;
+    
+    // Combine all resources
+    const allResources = [
+        ...resourceLinks.ppecb.map(r => ({...r, type: 'PPECB'})),
+        ...resourceLinks.nda.map(r => ({...r, type: 'Government'})),
+        ...resourceLinks.carriers.map(r => ({...r, type: 'Carrier'}))
+    ];
+    
+    const results = allResources.filter(resource => 
+        resource.title.toLowerCase().includes(query) ||
+        resource.description.toLowerCase().includes(query)
     );
     
-    searchResults = results;
-    displaySearchResults(results, category);
+    if (results.length === 0) {
+        alert('No resources found for your search');
+        return;
+    }
     
-    // Update button states
-    filterButtons.forEach(btn => {
-        if (btn.getAttribute('data-filter') === category) {
-            btn.classList.remove('btn-outline-primary', 'btn-outline-success', 'btn-outline-danger', 'btn-outline-info');
-            btn.classList.add('btn-success', 'text-white');
-        } else {
-            const originalClass = getOriginalButtonClass(btn.getAttribute('data-filter'));
-            btn.classList.remove('btn-success', 'text-white');
-            btn.classList.add(originalClass);
-        }
+    let html = '<h6>Search Results:</h6>';
+    results.forEach(resource => {
+        html += `
+            <div class="card mb-2">
+                <div class="card-body">
+                    <h6>${resource.title}</h6>
+                    <p class="small mb-2">${resource.description}</p>
+                    <div class="d-flex justify-content-between">
+                        <span class="badge bg-info">${resource.type}</span>
+                        <a href="${resource.url}" target="_blank" class="btn btn-sm btn-success">
+                            Visit <i class="bi bi-box-arrow-up-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        `;
     });
-}
-
-// Get Original Button Class
-function getOriginalButtonClass(filter) {
-    const classes = {
-        'fruit': 'btn-outline-success',
-        'flower': 'btn-outline-info',
-        'meat': 'btn-outline-danger',
-        'vegetable': 'btn-outline-warning'
-    };
-    return classes[filter] || 'btn-outline-secondary';
-}
-
-// Display Quick Search Tips
-function displayQuickSearchTips() {
-    hsResults.innerHTML = `
-        <div class="text-center text-muted py-5 animate__animated animate__fadeIn">
-            <i class="bi bi-search display-1 text-success opacity-50"></i>
-            <h4 class="mt-4 text-success">Perishable Commodity Database</h4>
-            <p class="lead">Search by HS code, commodity name, or destination</p>
-            
-            <div class="row mt-5">
-                <div class="col-md-8 offset-md-2">
-                    <div class="card border-success">
-                        <div class="card-header bg-success text-white">
-                            <i class="bi bi-lightbulb"></i> Quick Search Examples
-                        </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <h6><i class="bi bi-upc-scan"></i> By HS Code:</h6>
-                                    <div class="d-flex flex-wrap gap-2 mb-3">
-                                        <button class="btn btn-sm btn-outline-success" onclick="performSearch('080510')">080510 - Oranges</button>
-                                        <button class="btn btn-sm btn-outline-success" onclick="performSearch('080540')">080540 - Grapefruit</button>
-                                        <button class="btn btn-sm btn-outline-success" onclick="performSearch('080550')">080550 - Lemons</button>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <h6><i class="bi bi-globe"></i> By Destination:</h6>
-                                    <div class="d-flex flex-wrap gap-2 mb-3">
-                                        <button class="btn btn-sm btn-outline-primary" onclick="performSearch('EU')">European Union</button>
-                                        <button class="btn btn-sm btn-outline-primary" onclick="performSearch('US')">United States</button>
-                                        <button class="btn btn-sm btn-outline-primary" onclick="performSearch('China')">China</button>
-                                    </div>
-                                </div>
-                            </div>
-                            <hr>
-                            <p class="mb-0 small">
-                                <i class="bi bi-info-circle"></i> This database includes PPECB Yellow Card protocols, 
-                                temperature requirements, and destination-specific treatments.
-                            </p>
-                        </div>
+    
+    // Show in modal
+    const modalHtml = `
+        <div class="modal fade" id="resourceSearchModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header bg-success text-white">
+                        <h5 class="modal-title">
+                            <i class="bi bi-search"></i> Resource Search Results
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        ${html}
                     </div>
                 </div>
             </div>
         </div>
     `;
-}
+    
+    // Remove existing modal
+    const existingModal = document.getElementById('resourceSearchModal');
+    if (existingModal) existingModal.remove();
+    
+    // Add and show new modal
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    const modal = new bootstrap.Modal(document.getElementById('resourceSearchModal'));
+    modal.show();
+};
 
-// Copy to Clipboard
-function copyToClipboard(text) {
+// Utility Functions
+window.copyToClipboard = function(text) {
     navigator.clipboard.writeText(text).then(() => {
-        // Show notification
-        const alert = document.createElement('div');
-        alert.className = 'alert alert-success alert-dismissible fade show position-fixed';
-        alert.style.top = '20px';
-        alert.style.right = '20px';
-        alert.style.zIndex = '9999';
-        alert.style.minWidth = '300px';
-        alert.innerHTML = `
-            <div class="d-flex align-items-center">
-                <i class="bi bi-check-circle-fill fs-4 me-3"></i>
-                <div>
-                    <strong>Copied!</strong><br>
-                    <small>HS Code ${text} copied to clipboard</small>
+        // Show toast
+        const toast = document.createElement('div');
+        toast.className = 'position-fixed bottom-0 end-0 p-3';
+        toast.innerHTML = `
+            <div class="toast show" role="alert">
+                <div class="toast-header bg-success text-white">
+                    <strong class="me-auto"><i class="bi bi-check-circle"></i> Copied!</strong>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
                 </div>
-                <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+                <div class="toast-body">
+                    HS Code <strong>${text}</strong> copied to clipboard
+                </div>
             </div>
         `;
-        document.body.appendChild(alert);
-        
-        setTimeout(() => alert.remove(), 3000);
-    }).catch(err => {
-        console.error('Copy failed:', err);
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
     });
-}
+};
 
-// Print Commodity Details
-function printCommodityDetails() {
-    if (!currentCommodity) return;
+window.printCommodityDetails = function(commodityId) {
+    const commodity = commodities.find(c => c.id === commodityId);
+    if (!commodity) return;
     
     const printWindow = window.open('', '_blank');
     printWindow.document.write(`
         <html>
             <head>
-                <title>${currentCommodity.common_name} - Export Requirements</title>
-                <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+                <title>${commodity.common_name} Export Requirements</title>
                 <style>
-                    @media print {
-                        body { padding: 20px; }
-                        .no-print { display: none; }
-                        .card { border: 1px solid #000 !important; }
-                        .badge { border: 1px solid #000; }
-                    }
+                    body { font-family: Arial, sans-serif; padding: 20px; }
+                    h1 { color: #198754; }
+                    table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+                    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                    th { background-color: #f8f9fa; }
+                    .badge { background: #198754; color: white; padding: 2px 8px; border-radius: 3px; }
                 </style>
             </head>
             <body>
-                <div class="container">
-                    <h1 class="mt-4">${currentCommodity.common_name} Export Requirements</h1>
-                    <p class="text-muted">HS Code: ${currentCommodity.hs_code} | Generated: ${new Date().toLocaleDateString()}</p>
-                    <hr>
-                    <!-- Add print content here -->
-                    <p>Print functionality will be completed in next update.</p>
-                    <div class="mt-5 text-center text-muted small no-print">
-                        <hr>
-                        <p>SA Freight Assistant - Internal Use Only</p>
-                    </div>
-                </div>
+                <h1>${commodity.common_name} Export Requirements</h1>
+                <p><strong>HS Code:</strong> <span class="badge">${commodity.hs_code}</span></p>
+                <p><strong>Scientific Name:</strong> ${commodity.scientific_name}</p>
+                
+                <h3>Temperature Requirements</h3>
+                <table>
+                    <tr><th>Pulp Temperature</th><td>${commodity.temperature.pulp_temp_range}</td></tr>
+                    <tr><th>Transit Temperature</th><td>${commodity.temperature.transit_temp}</td></tr>
+                    <tr><th>Humidity</th><td>${commodity.temperature.humidity}</td></tr>
+                    <tr><th>Max Storage</th><td>${commodity.temperature.max_storage}</td></tr>
+                </table>
+                
+                <h3>PPECB Protocols</h3>
+                <p><strong>Yellow Card:</strong> ${commodity.ppecb.yellow_card_ref}</p>
+                <p><strong>Protocol Version:</strong> ${commodity.ppecb.protocol_version}</p>
+                
+                <h3>Destination Requirements</h3>
+                ${Object.entries(commodity.treatments || {}).map(([dest, treatment]) => `
+                    <h4>${dest}</h4>
+                    <table>
+                        <tr><th>Treatment Required</th><td>${treatment.required}</td></tr>
+                        <tr><th>Protocol</th><td>${treatment.protocol}</td></tr>
+                        <tr><th>Pulp Temperature</th><td>${treatment.pulp_temp}</td></tr>
+                        <tr><th>Pre-cooling</th><td>${treatment.pre_cooling}</td></tr>
+                    </table>
+                `).join('')}
+                
+                <p class="footer">Generated by PAXI Export Assistant on ${new Date().toLocaleDateString()}</p>
             </body>
         </html>
     `);
     printWindow.document.close();
     printWindow.focus();
     setTimeout(() => printWindow.print(), 500);
-}
+};
 
-// Make functions available globally
-window.performSearch = performSearch;
-window.copyToClipboard = copyToClipboard;
-window.showSearchResults = showSearchResults;
+window.copyCommodityDetails = function(commodityId) {
+    const commodity = commodities.find(c => c.id === commodityId);
+    if (!commodity) return;
+    
+    let text = `${commodity.common_name} (${commodity.hs_code})\n`;
+    text += `Scientific Name: ${commodity.scientific_name}\n`;
+    text += `Temperature: ${commodity.temperature.pulp_temp_range}\n\n`;
+    text += `PPECB Yellow Card: ${commodity.ppecb.yellow_card_ref}\n\n`;
+    text += `Destination Requirements:\n`;
+    
+    Object.entries(commodity.treatments || {}).forEach(([dest, treatment]) => {
+        text += `${dest}: ${treatment.required}\n`;
+        text += `  Protocol: ${treatment.protocol}\n`;
+        text += `  Pulp Temp: ${treatment.pulp_temp}\n`;
+        text += `  Pre-cooling: ${treatment.pre_cooling}\n\n`;
+    });
+    
+    navigator.clipboard.writeText(text).then(() => {
+        alert('Commodity details copied to clipboard!');
+    });
+};
