@@ -16,6 +16,9 @@
     
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="assets/logo.png">
+    
+    <!-- RSS Feed Parser -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/rss-parser/3.12.0/rss-parser.min.js"></script>
 </head>
 <body>
     <!-- Navigation -->
@@ -49,6 +52,11 @@
                     <li class="nav-item">
                         <a class="nav-link" href="#transit">
                             <i class="bi bi-clock"></i> Transit
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#news">
+                            <i class="bi bi-newspaper"></i> News
                         </a>
                     </li>
                     <li class="nav-item">
@@ -242,10 +250,90 @@
             </div>
         </section>
 
+        <!-- News Section -->
+        <section id="news" class="mb-5">
+            <div class="card border-info shadow">
+                <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">
+                        <i class="bi bi-newspaper"></i> Industry News Feed
+                    </h4>
+                    <button class="btn btn-sm btn-light" onclick="refreshNews()">
+                        <i class="bi bi-arrow-clockwise"></i> Refresh
+                    </button>
+                </div>
+                <div class="card-body">
+                    <!-- News Filter Tabs -->
+                    <ul class="nav nav-tabs mb-4" id="newsTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="freshplaza-tab" data-bs-toggle="tab" 
+                                    data-bs-target="#freshplaza" type="button" role="tab">
+                                <i class="bi bi-globe"></i> FreshPlaza Africa
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="kn-tab" data-bs-toggle="tab" 
+                                    data-bs-target="#kn" type="button" role="tab">
+                                <i class="bi bi-truck"></i> Kuehne+Nagel
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="all-tab" data-bs-toggle="tab" 
+                                    data-bs-target="#all" type="button" role="tab">
+                                <i class="bi bi-collection"></i> All News
+                            </button>
+                        </li>
+                    </ul>
+
+                    <!-- News Content -->
+                    <div class="tab-content" id="newsContent">
+                        <!-- FreshPlaza Tab -->
+                        <div class="tab-pane fade show active" id="freshplaza" role="tabpanel">
+                            <div class="row g-4" id="freshplazaNews">
+                                <div class="col-12 text-center py-5">
+                                    <div class="spinner-border text-info" role="status">
+                                        <span class="visually-hidden">Loading news...</span>
+                                    </div>
+                                    <p class="mt-3 text-muted">Loading FreshPlaza Africa news...</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Kuehne+Nagel Tab -->
+                        <div class="tab-pane fade" id="kn" role="tabpanel">
+                            <div class="row g-4" id="knNews">
+                                <div class="col-12 text-center py-5">
+                                    <div class="spinner-border text-info" role="status">
+                                        <span class="visually-hidden">Loading news...</span>
+                                    </div>
+                                    <p class="mt-3 text-muted">Loading Kuehne+Nagel news...</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- All News Tab -->
+                        <div class="tab-pane fade" id="all" role="tabpanel">
+                            <div class="row g-4" id="allNews">
+                                <div class="col-12 text-center py-5">
+                                    <div class="spinner-border text-info" role="status">
+                                        <span class="visually-hidden">Loading news...</span>
+                                    </div>
+                                    <p class="mt-3 text-muted">Loading all news...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-muted small mt-4">
+                        <i class="bi bi-info-circle"></i> News updates automatically every 30 minutes.
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- Resources Section -->
         <section id="resources" class="mb-5">
-            <div class="card border-info shadow">
-                <div class="card-header bg-info text-white">
+            <div class="card border-success shadow">
+                <div class="card-header bg-success text-white">
                     <h4 class="mb-0">
                         <i class="bi bi-link-45deg"></i> Essential Resources
                     </h4>
@@ -253,7 +341,7 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-6">
-                            <h5><i class="bi bi-shield-check text-success"></i> PPECB & Government</h5>
+                            <h5><i class="bi bi-shield-check"></i> PPECB & Government</h5>
                             <div class="list-group">
                                 <a href="https://ppecb.com/" target="_blank" class="list-group-item list-group-item-action">
                                     PPECB Official Website
@@ -264,19 +352,25 @@
                                 <a href="https://www.dalrrd.gov.za/doaDev/sideMenu/exportProcedures/ListExpProcedureCountry.php" target="_blank" class="list-group-item list-group-item-action">
                                     Export Procedures by Country
                                 </a>
+                                <a href="https://www.nda.gov.za/" target="_blank" class="list-group-item list-group-item-action">
+                                    National Department of Agriculture
+                                </a>
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <h5><i class="bi bi-newspaper text-primary"></i> Industry News</h5>
+                            <h5><i class="bi bi-building"></i> Ports & Logistics</h5>
                             <div class="list-group">
-                                <a href="https://www.freshplaza.com/africa/" target="_blank" class="list-group-item list-group-item-action">
-                                    FreshPlaza Africa
-                                </a>
-                                <a href="https://mykn.kuehne-nagel.com/news/" target="_blank" class="list-group-item list-group-item-action">
-                                    Kuehne+Nagel News
-                                </a>
                                 <a href="https://www.transnetportterminals.net/" target="_blank" class="list-group-item list-group-item-action">
                                     Transnet Port Terminals
+                                </a>
+                                <a href="https://www.portsregulator.org/" target="_blank" class="list-group-item list-group-item-action">
+                                    Ports Regulator of South Africa
+                                </a>
+                                <a href="https://www.sars.gov.za/" target="_blank" class="list-group-item list-group-item-action">
+                                    SARS (Customs)
+                                </a>
+                                <a href="https://www.gocomet.com/ports" target="_blank" class="list-group-item list-group-item-action">
+                                    Global Port Congestion
                                 </a>
                             </div>
                         </div>
@@ -330,14 +424,45 @@
         </div>
     </div>
 
+    <!-- News Article Modal -->
+    <div class="modal fade" id="newsModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title" id="newsModalTitle"></h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="newsModalBody">
+                    <!-- News content loaded here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <a href="#" target="_blank" class="btn btn-info" id="readFullArticle">
+                        <i class="bi bi-box-arrow-up-right"></i> Read Full Article
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- JavaScript Files -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/csvLoader.js"></script>
+    <script src="js/rssNews.js"></script>
     <script src="js/app.js"></script>
     
     <script>
         // Set current date in footer
         document.getElementById('currentDate').textContent = new Date().toLocaleDateString('en-ZA');
+        
+        // Initialize news when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                if (window.newsManager) {
+                    window.newsManager.loadAllNews();
+                }
+            }, 1000);
+        });
     </script>
 </body>
 </html>
