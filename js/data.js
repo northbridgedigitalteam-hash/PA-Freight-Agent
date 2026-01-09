@@ -1,179 +1,59 @@
 // ============================================
-// FREIGHT ASSISTANT - PERISHABLE COMMODITY DATABASE
-// South African Export Focus - Citrus First
+// PAXI - COMPLETE COMMODITY DATABASE
+// South African Perishable Exports
 // ============================================
 
-// Citrus Database - Starting with your most frequent shipments
+// Core Commodities Database
 const commodities = [
     {
-        // ========== ORANGES ==========
         id: "citrus_oranges",
         hs_code: "080510",
         hs_chapter: "08",
         hs_description: "Oranges, fresh or dried",
-        
-        // Names
         common_name: "Oranges",
         scientific_name: "Citrus × sinensis",
         afrikaans_name: "Lemoene",
         varieties: ["Navel", "Valencia", "Cara Cara", "Blood Orange"],
-        trade_names: ["Export Oranges", "Table Oranges"],
-        
-        // Category & Type
         category: "fruit",
         subcategory: "citrus",
-        perishability_level: "High",
-        ethylene_production: "Low",
-        ethylene_sensitivity: "High",
         
-        // PPECB YELLOW CARD DATA - CRITICAL
         ppecb: {
             yellow_card_ref: "CT-SO-001",
             protocol_version: "v4.2 (2024)",
             loading_protocol: "Pre-cooled containers mandatory",
-            inspection_points: ["Orchard", "Packhouse", "Load-out"],
-            certification: ["Phytosanitary", "Cold Treatment", "Origin"],
-            notes: "Palletized loading only - no bulk"
+            docs: ["Phytosanitary", "Cold Treatment Certificate", "Origin Certificate"]
         },
         
-        // TEMPERATURE & STORAGE - PPECB STANDARDS
         temperature: {
             pulp_temp_range: "2-4°C",
             transit_temp: "2-4°C",
-            storage_temp: "2-4°C",
             humidity: "85-90% RH",
-            max_storage_days: "8-12 weeks",
-            chilling_injury_threshold: "<2°C",
-            heat_damage_threshold: ">25°C",
-            respiration_rate: "Low"
+            max_storage: "8-12 weeks"
         },
         
-        // TREATMENTS BY DESTINATION - PPECB REQUIREMENTS
         treatments: {
             "EU": {
                 required: "Cold Treatment",
-                protocol: "16 days continuous at ≤2.2°C",
-                pulp_temp: "≤2.2°C before treatment",
-                pre_cooling: "MANDATORY - Pulp ≤5°C before loading",
-                documentation: ["Phytosanitary", "Cold Treatment Certificate", "TRACES-NT"],
-                pp_ref: "EU CT Protocol Annex IV",
-                notes: "Fruit must be free from frost. 5 probe placement required.",
-                inspectors: ["PPECB Approved", "EUREPGAP certified"]
+                protocol: "16 days at ≤2.2°C",
+                pulp_temp: "≤2.2°C",
+                pre_cooling: "MANDATORY",
+                notes: "TRACES-NT required, 5 probe placement"
             },
             "USA": {
-                required: "Cold Treatment OR Fumigation",
-                protocol: "Option 1: 22 days at ≤0°C OR Option 2: 24 days at ≤1.1°C",
-                pulp_temp: "≤3.3°C for cold treatment",
-                pre_cooling: "RECOMMENDED - Pulp ≤7°C before loading",
-                documentation: ["Phytosanitary", "Treatment Certificate", "APHIS Permit"],
-                pp_ref: "USDA 7CFR 319",
-                notes: "Methyl Bromide fumigation alternative available",
-                inspectors: ["PPECB Approved", "USDA accredited"]
+                required: "Cold Treatment",
+                protocol: "22 days at ≤0°C or 24 days at ≤1.1°C",
+                pulp_temp: "≤3.3°C",
+                pre_cooling: "RECOMMENDED"
             },
             "China": {
                 required: "Cold Treatment",
                 protocol: "18 days at ≤1.1°C",
-                pulp_temp: "≤4°C before treatment",
-                pre_cooling: "MANDATORY - Pulp ≤7°C before loading",
-                documentation: ["Phytosanitary", "Cold Treatment Certificate", "GACC Approval"],
-                pp_ref: "GACC Protocol SA-CT-001",
-                notes: "Pre-inspection by Chinese officials required",
-                inspectors: ["PPECB", "GACC Approved"]
-            },
-            "Middle East": {
-                required: "Cold Treatment (recommended) OR No Treatment",
-                protocol: "14 days at ≤2°C (if treating)",
-                pulp_temp: "≤5°C",
-                pre_cooling: "RECOMMENDED",
-                documentation: ["Phytosanitary", "Health Certificate"],
-                pp_ref: "GCC Standard 1234",
-                notes: "Treatment not always required - check import permit",
-                inspectors: ["PPECB"]
-            },
-            "Japan": {
-                required: "Fumigation (MB) + Cold Treatment",
-                protocol: "Fumigation + 18 days at ≤2°C",
-                pulp_temp: "≤2°C",
-                pre_cooling: "MANDATORY",
-                documentation: ["Phytosanitary", "Fumigation Certificate", "MAFF Approval"],
-                pp_ref: "MAFF Plant Protection Act",
-                notes: "Most stringent protocol - dual treatment required",
-                inspectors: ["PPECB", "JICA Approved"]
+                pulp_temp: "≤4°C",
+                pre_cooling: "MANDATORY"
             }
-        },
-        
-        // QUALITY STANDARDS
-        quality: {
-            sizing: {
-                standard: "Count per 15kg carton",
-                grades: ["56", "72", "88", "100", "113", "138", "163"],
-                sizing_method: "Diameter in mm",
-                tolerance: "±5mm per size"
-            },
-            brix: {
-                minimum: "10.5° Brix",
-                optimum: "12-14° Brix",
-                acid_ratio: "8:1 to 14:1",
-                maturity_index: "Color break ≥30%"
-            },
-            defects: {
-                max_total: "5%",
-                max_decay: "1%",
-                max_mechanical: "3%",
-                skin_requirements: "Smooth, no blemishes >2cm",
-                color: "Minimum 30% blush (except green permitted varieties)"
-            },
-            packaging: {
-                primary: "15kg telescopic carton",
-                internal: "Tissue wrap or tray pack",
-                palletization: "Euro pallet - 96 cartons",
-                marking: "HS code, variety, count, grower code"
-            }
-        },
-        
-        // SEASONALITY - SA SPECIFIC
-        seasonality: {
-            northern_hemisphere: "May to November",
-            southern_hemisphere: "November to April",
-            peak_months: ["June", "July", "August"],
-            regions: ["Eastern Cape", "Limpopo", "Mpumalanga", "Western Cape"],
-            harvest_windows: {
-                "Navel": "May - September",
-                "Valencia": "July - November",
-                "Midknight": "June - October"
-            }
-        },
-        
-        // SHIPPING SPECIFICS
-        shipping: {
-            container_type: "40' High Cube Reefer",
-            pallet_config: "Euro (120x80cm) - 10 high",
-            cartons_per_container: "960-1000",
-            weight_per_container: "14.5-15 tons",
-            loading_notes: "Load pre-cooled fruit only. Monitor pulp temps during load.",
-            ventilation: "25% open, air circulation front to back",
-            stowage: "Away from heat sources. No mixed loads with ethylene producers."
-        },
-        
-        // SPECIAL NOTES
-        special_notes: [
-            "CITRUS BLACK SPOT (CBS) sensitive - maintain strict orchard protocols",
-            "Post-harvest fungicide (Imazalil) treatment recommended",
-            "No mixed loads with apples, bananas, or avocados",
-            "Record pulp temperatures hourly during loading",
-            "Cold room holding before loading max 48 hours"
-        ],
-        
-        // RELATED CODES
-        related_codes: [
-            { code: "080520", description: "Mandarins, Clementines" },
-            { code: "080540", description: "Grapefruit" },
-            { code: "080550", description: "Lemons and Limes" }
-        ]
+        }
     },
     
-    // ========== TEMPLATE FOR NEXT COMMODITY ==========
-    // We'll add Grapefruit, Soft Citrus, Lemons here next
     {
         id: "citrus_grapefruit",
         hs_code: "080540",
@@ -181,119 +61,187 @@ const commodities = [
         hs_description: "Grapefruit, fresh",
         common_name: "Grapefruit",
         scientific_name: "Citrus × paradisi",
+        afrikaans_name: "Pompelmoes",
+        varieties: ["Star Ruby", "Ruby Red", "Marsh Seedless"],
         category: "fruit",
         subcategory: "citrus",
-        // ... (Will complete after oranges is working)
-        treatments: {}
+        
+        ppecb: {
+            yellow_card_ref: "CT-SG-002",
+            protocol_version: "v4.1 (2024)",
+            loading_protocol: "Pre-cooling recommended",
+            docs: ["Phytosanitary", "Cold Treatment Certificate"]
+        },
+        
+        temperature: {
+            pulp_temp_range: "10-12°C",
+            transit_temp: "10-12°C",
+            humidity: "85-90% RH",
+            max_storage: "6-8 weeks",
+            notes: "Chilling sensitive - do not store below 10°C"
+        },
+        
+        treatments: {
+            "EU": {
+                required: "Cold Treatment",
+                protocol: "16 days at ≤2.2°C",
+                pulp_temp: "≤2.2°C",
+                pre_cooling: "RECOMMENDED"
+            },
+            "USA": {
+                required: "Cold Treatment",
+                protocol: "22 days at ≤0°C",
+                pulp_temp: "≤2.2°C",
+                pre_cooling: "RECOMMENDED"
+            }
+        }
+    },
+    
+    {
+        id: "citrus_lemon",
+        hs_code: "080550",
+        hs_chapter: "08",
+        hs_description: "Lemons and limes, fresh",
+        common_name: "Lemons",
+        scientific_name: "Citrus limon",
+        afrikaans_name: "Suerlemoene",
+        varieties: ["Eureka", "Lisbon", "Fino"],
+        category: "fruit",
+        subcategory: "citrus",
+        
+        ppecb: {
+            yellow_card_ref: "CT-SL-003",
+            protocol_version: "v4.0 (2024)",
+            loading_protocol: "Standard refrigerated loading",
+            docs: ["Phytosanitary", "Treatment Certificate"]
+        },
+        
+        temperature: {
+            pulp_temp_range: "8-10°C",
+            transit_temp: "8-10°C",
+            humidity: "85-90% RH",
+            max_storage: "3-4 months"
+        },
+        
+        treatments: {
+            "EU": {
+                required: "Cold Treatment",
+                protocol: "16 days at ≤2.2°C",
+                pulp_temp: "≤2.2°C",
+                pre_cooling: "RECOMMENDED"
+            },
+            "Middle East": {
+                required: "None",
+                protocol: "No treatment required",
+                pulp_temp: "8-10°C",
+                pre_cooling: "OPTIONAL"
+            }
+        }
+    },
+    
+    {
+        id: "citrus_soft",
+        hs_code: "080520",
+        hs_chapter: "08",
+        hs_description: "Mandarins, clementines, wilkings and similar citrus hybrids, fresh",
+        common_name: "Soft Citrus",
+        scientific_name: "Citrus reticulata",
+        afrikaans_name: "Naartjies",
+        varieties: ["Nova", "Nadorcott", "Tango", "Orri"],
+        category: "fruit",
+        subcategory: "citrus",
+        
+        ppecb: {
+            yellow_card_ref: "CT-SC-004",
+            protocol_version: "v4.2 (2024)",
+            loading_protocol: "Handle carefully - delicate fruit",
+            docs: ["Phytosanitary", "Cold Treatment Certificate", "Quality Certificate"]
+        },
+        
+        temperature: {
+            pulp_temp_range: "4-6°C",
+            transit_temp: "4-6°C",
+            humidity: "90-95% RH",
+            max_storage: "4-6 weeks"
+        },
+        
+        treatments: {
+            "EU": {
+                required: "Cold Treatment",
+                protocol: "16 days at ≤2.2°C",
+                pulp_temp: "≤2.2°C",
+                pre_cooling: "MANDATORY"
+            },
+            "China": {
+                required: "Cold Treatment",
+                protocol: "18 days at ≤1.1°C",
+                pulp_temp: "≤4°C",
+                pre_cooling: "MANDATORY"
+            }
+        }
     }
 ];
 
-// Carrier Information (Keep this from before)
-const carriers = {
-    "MSC": {
-        si_cutoff_days: 3,
-        perishable_docs: ["SI", "BL Draft", "Phytosanitary Copy", "Treatment Certificate"],
-        contact: "si.capetown@msc.com",
-        phone: "+27 21 123 4567",
-        notes: "VGM submission 24h before loading. No fruit pulp >5°C at loading.",
-        reefer_team: "reefers.za@msc.com"
-    },
-    "Maersk": {
-        si_cutoff_days: 4,
-        perishable_docs: ["SI", "VGM", "Export Declaration", "Treatment Certificates"],
-        contact: "za.sidoc@maersk.com",
-        phone: "+27 11 987 6543",
-        notes: "Electronic BL only. Temperature settings must be set 48h pre-load.",
-        reefer_team: "na.reefers@maersk.com"
+// Transit Times Database
+const transitTimes = {
+    routes: [
+        { origin: "Cape Town (CPT)", origin_code: "ZACPT", destination: "Rotterdam (RTM)", destination_code: "NLRTM", carrier: "MSC", transit_days: 18, frequency: "Weekly", status: "Normal" },
+        { origin: "Cape Town (CPT)", origin_code: "ZACPT", destination: "Antwerp (ANT)", destination_code: "BEANR", carrier: "Maersk", transit_days: 20, frequency: "Weekly", status: "Normal" },
+        { origin: "Cape Town (CPT)", origin_code: "ZACPT", destination: "Jebel Ali (JEA)", destination_code: "AEJEA", carrier: "MSC", transit_days: 14, frequency: "Twice Weekly", status: "Busy" },
+        { origin: "Cape Town (CPT)", origin_code: "ZACPT", destination: "Shanghai (SHA)", destination_code: "CNSHA", carrier: "Maersk", transit_days: 28, frequency: "Weekly", status: "Congested" },
+        { origin: "Cape Town (CPT)", origin_code: "ZACPT", destination: "Philadelphia (PHL)", destination_code: "USPHL", carrier: "MSC", transit_days: 25, frequency: "Weekly", status: "Normal" },
+        { origin: "Durban (DUR)", origin_code: "ZADUR", destination: "Rotterdam (RTM)", destination_code: "NLRTM", carrier: "CMA CGM", transit_days: 22, frequency: "Weekly", status: "Normal" }
+    ],
+    portCongestion: {
+        "NLRTM": { status: "Normal", delay_days: 0 },
+        "BEANR": { status: "Normal", delay_days: 0 },
+        "AEJEA": { status: "Busy", delay_days: 2 },
+        "CNSHA": { status: "Congested", delay_days: 4 },
+        "USPHL": { status: "Normal", delay_days: 1 }
     }
 };
 
-// Ports and Terminals
-const ports = {
-    "CPT": {
-        name: "Cape Town",
-        code: "ZACPT",
-        terminals: {
-            "DCT": "Dubai Ports Cape Town",
-            "MCT": "Maersk Cape Town"
+// Resource Links Database
+const resourceLinks = {
+    ppecb: [
+        {
+            title: "Cold Treatment Container Loading Protocols (Yellow Card)",
+            url: "https://ppecb.com/docs/q25-cold-treatment-container-loading-protocols-yellow-card/",
+            description: "Official PPECB Yellow Card for cold treatment procedures"
         },
-        cold_stores: ["Fresh Produce Terminals", "Cool Carriers"],
-        inspection_facilities: ["PPECB CPT Terminal", "Port Health"]
-    },
-    "DUR": {
-        name: "Durban",
-        code: "ZADUR",
-        terminals: {
-            "Pier 1": "Main Fruit Terminal",
-            "Pier 2": "Multi-purpose"
+        {
+            title: "Phytosanitary Requirements for Fruit Exports",
+            url: "https://ppecb.com/docs/phytosanitary-requirements/",
+            description: "PPECB phytosanitary certification guidelines"
+        }
+    ],
+    nda: [
+        {
+            title: "Export Regulations and Standards",
+            url: "https://www.nda.gov.za/index.php/publication/524-export-regulations-and-standards",
+            description: "Department of Agriculture export regulations"
         },
-        cold_stores: ["Durban Cold Storage", "Transnet Perishables"],
-        inspection_facilities: ["PPECB Durban", "Port Health Office"]
-    }
-};
-
-// Destination Codes
-const destinations = {
-    "EU": {
-        full_name: "European Union",
-        includes: ["Netherlands", "UK", "Germany", "France", "Spain", "Italy"],
-        entry_ports: ["Rotterdam", "Antwerp", "Southampton", "Bremerhaven"],
-        clearance_time: "24-48 hours"
-    },
-    "ME": {
-        full_name: "Middle East",
-        includes: ["UAE", "Saudi Arabia", "Qatar", "Oman", "Kuwait"],
-        entry_ports: ["Jebel Ali", "Dammam", "Doha", "Sohar"],
-        clearance_time: "12-24 hours"
-    },
-    "FEA": {
-        full_name: "Far East Asia",
-        includes: ["China", "Japan", "South Korea", "Taiwan"],
-        entry_ports: ["Shanghai", "Yokohama", "Busan", "Kaohsiung"],
-        clearance_time: "48-72 hours"
-    },
-    "SEA": {
-        full_name: "Southeast Asia",
-        includes: ["Singapore", "Malaysia", "Thailand", "Vietnam", "Philippines"],
-        entry_ports: ["Singapore", "Port Klang", "Bangkok", "Ho Chi Minh"],
-        clearance_time: "24-48 hours"
-    },
-    "US": {
-        full_name: "United States",
-        includes: ["East Coast", "West Coast", "Gulf"],
-        entry_ports: ["Philadelphia", "Wilmington", "Port Newark", "Long Beach"],
-        clearance_time: "72+ hours (FDA inspection)"
-    }
-};
-
-// PPECB Treatment Codes Reference
-const ppecbTreatments = {
-    "CT": {
-        code: "CT",
-        name: "Cold Treatment",
-        description: "Low temperature exposure for pest disinfestation",
-        applicable_commodities: ["All citrus", "Apples", "Grapes", "Stone fruit"],
-        common_durations: ["16 days", "18 days", "22 days", "24 days"]
-    },
-    "FUM": {
-        code: "FUM",
-        name: "Fumigation",
-        description: "Chemical treatment (Methyl Bromide/Phosphine)",
-        applicable_commodities: ["Citrus", "Deciduous fruit", "Vegetables"],
-        common_durations: ["2 hours", "4 hours", "24 hours"]
-    },
-    "VH": {
-        code: "VH",
-        name: "Vapor Heat",
-        description: "Heat treatment for fruit fly",
-        applicable_commodities: ["Mangoes", "Papayas", "Lychees"],
-        common_durations: ["4 hours", "6 hours"]
-    }
+        {
+            title: "Plant Health Requirements",
+            url: "https://www.nda.gov.za/planthealth",
+            description: "National plant health requirements"
+        }
+    ],
+    carriers: [
+        {
+            title: "MSC Perishable Cargo Guidelines",
+            url: "https://www.msc.com/en/perishables",
+            description: "MSC specific requirements for perishables"
+        },
+        {
+            title: "Maersk Reefer Services",
+            url: "https://www.maersk.com/services/reefer",
+            description: "Maersk reefer specifications"
+        }
+    ]
 };
 
 // Export all data
 window.commodities = commodities;
-window.carriers = carriers;
-window.ports = ports;
-window.destinations = destinations;
-window.ppecbTreatments = ppecbTreatments;
+window.transitTimes = transitTimes;
+window.resourceLinks = resourceLinks;
