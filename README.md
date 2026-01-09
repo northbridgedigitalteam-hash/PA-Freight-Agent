@@ -8,7 +8,6 @@ PAXI is a web-based application designed specifically for South African perishab
 - **Transit Calculator**: Port-to-port transit time estimates with carrier information
 - **Resource Hub**: Quick access to PPECB, NDA, and carrier websites
 - **Mobile Responsive**: Works on all devices
-- **Zero Cost**: Built with free technologies and hosted on GitHub Pages
 
 ## Live Application
 Access the live application at: `https://[your-username].github.io/paxi-export-assistant/`
