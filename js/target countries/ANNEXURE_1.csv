@@ -1,0 +1,219 @@
+﻿Unnamed: 0,Unnamed: 1,Unnamed: 2,Unnamed: 3
+,,,
+,,,
+Target Region,Target Region Code,Target Country,Target Country ISO Code
+European Union,EUN,,
+,,Austria,AT
+,,Ireland,IE
+,,Belgium,BE
+,,France,FR
+,,Germany,DE
+,,Luxembourg,LU
+,,Netherlands,NL
+,,Bulgaria,BG
+,,Czech Republic,CZ
+,,Hungary,HU
+,,Poland,PL
+,,Romania,RO
+,,Slovakia,SK
+,,Slovenia,SI
+,,Estonia,EE
+,,Lithuania,LT
+,,Latvia,LV
+,,Cyprus,CY
+,,Greece,GR
+,,Italy,IT
+,,Malta,MT
+,,Portugal,PT
+,,Spain,ES
+,,Denmark,DK
+,,Finland,FI
+,,Sweden,SE
+,,San Marino,SM
+,,Liechtenstein,LI
+,,Switzerland,CH
+,,Monaco,MC
+,,Holy See (Vatican City State),VA
+,,Croatia,HR
+,,Montenegro,ME
+Europe Other,EOC,,
+,,Belarus,BY
+,,Moldova,MD
+,,Serbia,RS
+,,Bosnia and Herzegovina,BA
+,,Georgia,GE
+,,Armenia,AM
+,,North Macedonia,MK
+,,Albania,AL
+,,Norway,NO
+,,Ukraine,UA
+,,Iceland,IS
+Russian Federation,RUS,,
+,,Russian Federation,RU
+,,,
+United Kingdom,UKI,,
+,,United Kingdom,GB
+,,Isle of Man,IM
+,,Guernsey,GG
+,,Jersey,JE
+,,,
+Middle East,MEA,,
+,,Syrian Arab Republic,SY
+,,Lebanon,LB
+,,Israel,IL
+,,Jordan,JO
+,,Iraq,IQ
+,,Kuwait,KW
+,,Bahrain,BH
+,,Qatar,QA
+,,Saudi Arabia,SA
+,,Yemen,YE
+,,Oman,OM
+,,United Arab Emirates,AE
+,,"Iran, Islamic Republic of",IR
+,,Azerbaijan,AZ
+,,Turkey,TR
+,,Pakistan,PK
+,,Afghanistan,AF
+,,Turkmenistan,TM
+,,Kyrgyzstan,KG
+,,Tajikistan,TJ
+,,Kazakhstan,KZ
+,,,
+,,,
+Asia,ASA,,
+,,India,IN
+,,Nepal,NP
+,,Bhutan,BT
+,,Bangladesh,BD
+,,Myanmar,MM
+,,Lao People's Democratic Republic (Laos),LA
+,,Thailand,TH
+,,Cambodia,KH
+,,Brunei Darussalam,BN
+,,Indonesia,ID
+,,Timor-Leste,TL
+,,Philippines,PH
+,,Sri Lanka,LK
+,,Japan,JP
+,,Mongolia,MN
+,,Korea,KR
+,,Uzbekistan,UZ
+,,"Korea, Democratic People's Republic of",KP
+,,,
+South East Asia,SEA,,
+,,China,CN
+,,Hong Kong,HK
+,,Malaysia,MY
+,,Singapore,SG
+,,Taiwan,TW
+,,Vietnam,VN
+,,,
+Oceania,OCE,,
+,,Australia,AU
+,,New Zealand,NZ
+,,Fiji,FJ
+,,Tonga,TO
+,,Samoa,WS
+,,Kiribati,KI
+,,"Micronesia, Federated States of",FM
+,,Papua New Guinea,PG
+,,Norfolk Island,NF
+,,Antarctica,AQ
+,,Solomon Islands,SB
+,,,
+Africa,AFR,,
+,,Benin,BJ
+,,Burkina Faso,BF
+,,Côte D'ivoire,CI
+,,Cape Verde,CV
+,,Gambia,GM
+,,Ghana,GH
+,,Guinea,GN
+,,Guinea-Bissau,GW
+,,Liberia,LR
+,,Mali,ML
+,,Mauritania,MR
+,,Niger,NE
+,,Nigeria,NG
+,,Senegal,SN
+,,Sierra Leone,SL
+,,Togo,TG
+,,Kenya,KE
+,,"Tanzania, United Republic of",TZ
+,,Uganda,UG
+,,Eritrea,ER
+,,Djibouti,DJ
+,,Ethiopia,ET
+,,Somalia,SO
+,,Rwanda,RW
+,,Burundi,BI
+,,Sudan,SD
+,,South Sudan,SS
+,,Angola,AO
+,,Cameroon,CM
+,,Central African Republic,CF
+,,Chad,TD
+,,Congo,CG
+,,"Congo, The Democratic Republic of the",CD
+,,Equatorial Guinea,GQ
+,,Gabon,GA
+,,Sao Tome and Principe,ST
+,,Saint Helena,SH
+,,Egypt,EG
+,,Libyan Arab Jamahiriya,LY
+,,Algeria,DZ
+,,Tunisia,TN
+,,Morocco,MA
+,,Western Sahara,EH
+,,Namibia,
+,,Botswana,BW
+,,Zimbabwe,ZW
+,,Zambia,ZM
+,,Mozambique,MZ
+,,Malawi,MW
+,,South Africa,ZA
+,,Eswatini,SZ
+,,Lesotho,LS
+,,,
+Indian Ocean islands,IOI,,
+,,Madagascar,MG
+,,Comoros,KM
+,,Maldives,MV
+,,Mauritius,MU
+,,Mayotte,YT
+,,Reunion,RE
+,,Seychelles,SC
+,,,
+North-America,NAM,,
+,,Canada,CA
+,,Mexico,MX
+,,United States of America,US
+,,,
+Central-America,CAM,,
+,,Belize,BZ
+,,Costa Rica,CR
+,,El Salvador,SV
+,,Guatemala,GT
+,,Cuba,CU
+,,Honduras,HN
+,,Nicaragua,NI
+,,Panama,PA
+,,Puerto Rico,PR
+,,,
+South-America,SAM,,
+,,Brazil,BR
+,,Chile (including Easter Island),CL
+,,Peru,PE
+,,Paraguay,PY
+,,Uruguay,UY
+,,Venezuela,VE
+,,Bolivia,BO
+,,Colombia,CO
+,,Ecuador,EC
+,,Falkland Islands (Malvinas),FK
+,,French Guiana,GF
+,,Guyana,GY
+,,Suriname,SR
+                           ,,Argentina,AR
+,,Trinidad and Tobago,TT
