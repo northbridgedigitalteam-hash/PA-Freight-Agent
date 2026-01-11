@@ -493,4 +493,137 @@ function showWelcomeView() {
                     </div>
                 </div>
                 <div class="col-md-4">
-                    <div class
+                    <div class="card border-info">
+                        <div class="card-body">
+                            <h2 class="text-info">${Object.keys(stats.categories).length}</h2>
+                            <p class="text-muted mb-0">Categories</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card border-warning">
+                        <div class="card-body">
+                            <h2 class="text-warning">${stats.destinations.length}</h2>
+                            <p class="text-muted mb-0">Destinations</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-5">
+                <h6 class="text-muted mb-3">Quick Start Examples:</h6>
+                <div class="d-flex flex-wrap justify-content-center gap-3">
+                    <button class="btn btn-outline-success" onclick="quickSearch('oranges')">
+                        <i class="bi bi-apple"></i> Search Oranges
+                    </button>
+                    <button class="btn btn-outline-info" onclick="quickSearch('EU')">
+                        <i class="bi bi-globe-europe-africa"></i> EU Requirements
+                    </button>
+                    <button class="btn btn-outline-warning" onclick="quickSearch('cold treatment')">
+                        <i class="bi bi-snow"></i> Cold Treatment
+                    </button>
+                    <button class="btn btn-outline-danger" onclick="quickSearch('CBS')">
+                        <i class="bi bi-shield-exclamation"></i> CBS Check
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// Show no results
+function showNoResults(query) {
+    resultsContainer.innerHTML = `
+        <div class="text-center py-5">
+            <i class="bi bi-search display-1 text-muted opacity-50"></i>
+            <h4 class="mt-3 text-muted">No commodities found</h4>
+            <p>Your search for "${query}" didn't match any commodities in our database.</p>
+            <div class="mt-4">
+                <button class="btn btn-success" onclick="clearSearch()">
+                    <i class="bi bi-arrow-clockwise"></i> Clear Search
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+// Show error message
+function showError(message) {
+    resultsContainer.innerHTML = `
+        <div class="alert alert-danger">
+            <i class="bi bi-exclamation-octagon"></i> ${message}
+        </div>
+    `;
+}
+
+// Utility functions
+window.clearSearch = function() {
+    searchInput.value = '';
+    currentCategory = 'all';
+    categoryFilter.value = 'all';
+    showWelcomeView();
+};
+
+window.quickSearch = function(query) {
+    searchInput.value = query;
+    performSearch(query);
+};
+
+window.copyToClipboard = function(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        // Show toast notification
+        const toast = document.createElement('div');
+        toast.className = 'position-fixed bottom-0 end-0 p-3';
+        toast.innerHTML = `
+            <div class="toast show" role="alert">
+                <div class="toast-header bg-success text-white">
+                    <strong class="me-auto"><i class="bi bi-check-circle"></i> Copied!</strong>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+                </div>
+                <div class="toast-body">
+                    HS Code <strong>${text}</strong> copied to clipboard
+                </div>
+            </div>
+        `;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    });
+};
+
+window.printCommodityDetails = function() {
+    if (!currentCommodityDetail) return;
+    
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+        <html>
+            <head>
+                <title>${currentCommodityDetail.common_name} Export Requirements</title>
+                <style>
+                    body { font-family: Arial, sans-serif; padding: 20px; }
+                    h1 { color: #198754; border-bottom: 2px solid #198754; padding-bottom: 10px; }
+                    h3 { color: #0d6efd; margin-top: 20px; }
+                    table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+                    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                    th { background-color: #f8f9fa; }
+                    .badge { background: #198754; color: white; padding: 2px 8px; border-radius: 3px; }
+                    .alert { padding: 10px; margin: 10px 0; border-radius: 5px; }
+                    .alert-warning { background-color: #fff3cd; border: 1px solid #ffeaa7; }
+                    .alert-info { background-color: #d1ecf1; border: 1px solid #bee5eb; }
+                    .alert-danger { background-color: #f8d7da; border: 1px solid #f5c6cb; }
+                </style>
+            </head>
+            <body>
+                <h1>${currentCommodityDetail.common_name} Export Requirements</h1>
+                <p><strong>HS Code:</strong> <span class="badge">${currentCommodityDetail.hs_code}</span></p>
+                <p><strong>Scientific Name:</strong> ${currentCommodityDetail.scientific_name}</p>
+                <hr>
+                <!-- Add simplified print content here -->
+                <p>Detailed print view would be implemented here.</p>
+                <p class="footer">Generated by PAXI Export Assistant on ${new Date().toLocaleDateString()}</p>
+            </body>
+        </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => printWindow.print(), 500);
+};
