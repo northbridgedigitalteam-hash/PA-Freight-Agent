@@ -1,77 +1,62 @@
 // ============================================
-// PAXI MAIN APPLICATION
+// PAXI - MAIN APPLICATION
 // ============================================
 
 // Global state
-let allCommodities = [];
 let currentSearchResults = [];
 let currentCategory = 'all';
+let currentCommodityDetail = null;
 
 // DOM Elements
 const searchInput = document.getElementById('searchInput');
 const categoryFilter = document.getElementById('categoryFilter');
 const resultsContainer = document.getElementById('resultsContainer');
 const commodityCount = document.getElementById('commodityCount');
-const transitTable = document.getElementById('transitTable');
 
-// Initialize app
-document.addEventListener('DOMContentLoaded', async function() {
-    console.log('PAXI Export Assistant initializing...');
+// Initialize application
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('PAXI Export Assistant v3.0 initializing...');
     
-    // Load CSV data
-    await loadCommodityData();
+    // Update statistics
+    updateStatistics();
     
-    // Initialize event listeners
+    // Load news feeds
+    if (window.newsFeed) {
+        window.newsFeed.loadAll();
+    }
+    
+    // Setup event listeners
     setupEventListeners();
     
-    // Load transit times
-    loadTransitTimes();
-    
-    // Show initial results
-    performSearch('');
-    
-    // Load news (slight delay to let page render first)
-    setTimeout(() => {
-        if (window.newsManager) {
-            window.newsManager.loadAllNews();
-        }
-    }, 1500);
+    // Show initial view
+    showWelcomeView();
 });
 
-// Load commodity data from CSV
-async function loadCommodityData() {
-    try {
-        allCommodities = await csvLoader.loadCSV();
-        
-        // Update UI with counts
-        updateStats();
-        
-        // Populate category filter
-        populateCategories();
-        
-    } catch (error) {
-        console.error('Failed to load commodity data:', error);
-        showError('Failed to load commodity database. Please refresh the page.');
-    }
-}
-
 // Update statistics display
-function updateStats() {
-    if (!allCommodities || allCommodities.length === 0) return;
+function updateStatistics() {
+    if (!window.commodityDatabase) return;
     
-    // Update commodity count
-    commodityCount.textContent = `${allCommodities.length} commodities`;
+    const stats = window.commodityDatabase.getStats();
+    commodityCount.textContent = `${stats.total} Commodities`;
+    
+    // Update category filter options
+    updateCategoryFilter(stats.categories);
 }
 
-// Populate category filter dropdown
-function populateCategories() {
-    if (!allCommodities || allCommodities.length === 0) return;
+// Update category filter with actual categories
+function updateCategoryFilter(categories) {
+    if (!categoryFilter) return;
     
-    const categories = csvLoader.getCategories();
-    categories.forEach(category => {
+    // Clear existing options except "All Categories"
+    while (categoryFilter.options.length > 1) {
+        categoryFilter.remove(1);
+    }
+    
+    // Add category options
+    Object.keys(categories).forEach(category => {
         const option = document.createElement('option');
-        option.value = category.toLowerCase();
-        option.textContent = category.charAt(0).toUpperCase() + category.slice(1);
+        option.value = category;
+        option.textContent = `${category.charAt(0).toUpperCase() + category.slice(1)} (${categories[category]})`;
         categoryFilter.appendChild(option);
     });
 }
@@ -87,7 +72,7 @@ function setupEventListeners() {
         }, 300);
     });
     
-    // Category filter
+    // Category filter change
     categoryFilter.addEventListener('change', function() {
         currentCategory = this.value;
         performSearch(searchInput.value);
@@ -100,38 +85,31 @@ function setupEventListeners() {
         }
     });
     
-    // News tab switching
-    const newsTabs = document.querySelectorAll('#newsTabs button[data-bs-toggle="tab"]');
-    newsTabs.forEach(tab => {
-        tab.addEventListener('shown.bs.tab', function(event) {
-            // You could trigger specific source loading here if needed
-        });
-    });
+    // Focus search input on page load
+    setTimeout(() => {
+        searchInput.focus();
+    }, 500);
 }
 
 // Perform search
 function performSearch(query) {
-    if (!csvLoader.loaded) {
-        resultsContainer.innerHTML = `
-            <div class="alert alert-warning">
-                <i class="bi bi-exclamation-triangle"></i> Database still loading...
-            </div>
-        `;
+    if (!window.commodityDatabase) {
+        showError('Commodity database not loaded');
         return;
     }
     
-    const results = csvLoader.searchCommodities(query, currentCategory);
+    const results = window.commodityDatabase.search(query, currentCategory);
     currentSearchResults = results;
     
     if (results.length === 0) {
-        displayNoResults(query);
+        showNoResults(query);
     } else {
-        displayResults(results, query);
+        displayResults(results);
     }
 }
 
 // Display search results
-function displayResults(results, query) {
+function displayResults(results) {
     let html = `
         <div class="row g-4">
     `;
@@ -146,66 +124,62 @@ function displayResults(results, query) {
     // Add click handlers to cards
     document.querySelectorAll('.commodity-card').forEach(card => {
         card.addEventListener('click', function() {
-            const hsCode = this.getAttribute('data-hs');
-            showCommodityDetail(hsCode);
+            const commodityId = this.getAttribute('data-id');
+            showCommodityDetail(commodityId);
         });
     });
 }
 
-// Create commodity card HTML
+// Create commodity card
 function createCommodityCard(commodity, index) {
-    const hsCode = commodity.HS_Code || 'N/A';
-    const name = commodity.Commodity_Name || 'Unnamed Commodity';
-    const category = commodity.Category || 'uncategorized';
-    const sciName = commodity.Scientific_Name || '';
+    const destCount = commodity.destinations ? Object.keys(commodity.destinations).length : 0;
     
     return `
         <div class="col-md-6 col-lg-4">
             <div class="commodity-card card h-100 animate-in" 
                  style="animation-delay: ${index * 0.1}s"
-                 data-hs="${hsCode}">
+                 data-id="${commodity.id}">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start mb-3">
                         <div>
-                            <span class="badge bg-success">${hsCode}</span>
-                            <span class="badge bg-info ms-1">${category}</span>
+                            <span class="badge bg-success">${commodity.hs_code}</span>
+                            <span class="badge bg-info ms-1">${commodity.category}</span>
                         </div>
                         <button class="btn btn-sm btn-outline-success" 
-                                onclick="event.stopPropagation(); copyToClipboard('${hsCode}')"
+                                onclick="event.stopPropagation(); copyToClipboard('${commodity.hs_code}')"
                                 title="Copy HS Code">
                             <i class="bi bi-copy"></i>
                         </button>
                     </div>
                     
-                    <h5 class="card-title">${name}</h5>
+                    <h5 class="card-title">${commodity.common_name}</h5>
                     
-                    ${sciName ? `
                     <p class="card-text text-muted small mb-3">
-                        <i class="bi bi-flower1"></i> ${sciName}
+                        <i class="bi bi-flower1"></i> ${commodity.scientific_name}
                     </p>
-                    ` : ''}
                     
-                    ${commodity.Variety_Name ? `
-                    <p class="card-text small mb-2">
-                        <strong>Variety:</strong> ${commodity.Variety_Name}
-                        ${commodity.Variety_Code ? `(${commodity.Variety_Code})` : ''}
-                    </p>
-                    ` : ''}
-                    
-                    ${commodity.Temperature ? `
+                    ${commodity.technical && commodity.technical.temperature ? `
                     <div class="mb-3">
-                        <span class="badge bg-warning text-dark">
-                            <i class="bi bi-thermometer-half"></i> ${commodity.Temperature}
+                        <span class="temp-badge temp-chilled">
+                            <i class="bi bi-thermometer-half"></i> ${commodity.technical.temperature.pulp_range}
+                        </span>
+                        <span class="badge bg-warning text-dark ms-2">
+                            <i class="bi bi-globe"></i> ${destCount} destinations
                         </span>
                     </div>
                     ` : ''}
                     
+                    ${commodity.varieties && commodity.varieties.length > 0 ? `
+                    <p class="card-text small mb-2">
+                        <strong>Varieties:</strong> ${commodity.varieties.map(v => v.name).slice(0, 2).join(', ')}
+                        ${commodity.varieties.length > 2 ? '...' : ''}
+                    </p>
+                    ` : ''}
+                    
                     <div class="d-flex justify-content-between align-items-center mt-auto">
-                        ${commodity.PPECB_Ref ? `
                         <small class="text-muted">
-                            <i class="bi bi-shield-check"></i> ${commodity.PPECB_Ref}
+                            <i class="bi bi-box-seam"></i> ${commodity.hs_description.substring(0, 30)}...
                         </small>
-                        ` : '<div></div>'}
                         <span class="badge bg-light text-success">
                             Details <i class="bi bi-arrow-right"></i>
                         </span>
@@ -216,90 +190,21 @@ function createCommodityCard(commodity, index) {
     `;
 }
 
-// Display no results message
-function displayNoResults(query) {
-    resultsContainer.innerHTML = `
-        <div class="text-center py-5">
-            <i class="bi bi-search display-1 text-muted opacity-50"></i>
-            <h4 class="mt-3 text-muted">No commodities found</h4>
-            <p>${query ? `Your search for "${query}" didn't match any commodities.` : 'No commodities in database.'}</p>
-            
-            <div class="mt-4">
-                <button class="btn btn-success" onclick="clearSearch()">
-                    <i class="bi bi-arrow-clockwise"></i> Clear Search
-                </button>
-            </div>
-        </div>
-    `;
-}
-
 // Show commodity detail modal
-function showCommodityDetail(hsCode) {
-    const commodity = csvLoader.getCommodityByHSCode(hsCode);
+function showCommodityDetail(commodityId) {
+    const commodity = window.commodityDatabase.getById(commodityId);
     if (!commodity) {
-        alert('Commodity not found');
+        showError('Commodity not found');
         return;
     }
     
-    // Build modal content based on your CSV structure
-    let modalContent = `
-        <div class="row">
-            <div class="col-md-6">
-                <table class="table table-sm">
-                    <tr><th>HS Code:</th><td><span class="badge bg-success">${commodity.HS_Code || 'N/A'}</span></td></tr>
-                    <tr><th>Commodity:</th><td>${commodity.Commodity_Name || 'N/A'}</td></tr>
-                    <tr><th>Scientific Name:</th><td>${commodity.Scientific_Name || 'N/A'}</td></tr>
-                    <tr><th>Category:</th><td>${commodity.Category || 'N/A'}</td></tr>
-                    ${commodity.Variety_Name ? `<tr><th>Variety:</th><td>${commodity.Variety_Name} (${commodity.Variety_Code || ''})</td></tr>` : ''}
-                </table>
-            </div>
-            <div class="col-md-6">
-    `;
+    currentCommodityDetail = commodity;
     
-    // Add temperature info if available
-    if (commodity.Temperature) {
-        modalContent += `
-            <div class="alert alert-warning">
-                <h6><i class="bi bi-thermometer-half"></i> Temperature Requirements</h6>
-                <p class="mb-0">${commodity.Temperature}</p>
-            </div>
-        `;
-    }
-    
-    // Add PPECB reference if available
-    if (commodity.PPECB_Ref) {
-        modalContent += `
-            <div class="alert alert-success">
-                <h6><i class="bi bi-shield-check"></i> PPECB Reference</h6>
-                <p class="mb-0">${commodity.PPECB_Ref}</p>
-            </div>
-        `;
-    }
-    
-    modalContent += `</div></div>`;
-    
-    // Add destination requirements if available
-    const destinations = ['EU', 'USA', 'China', 'Middle_East', 'Japan', 'UK'];
-    const destinationContent = destinations
-        .filter(dest => commodity[`Destination_${dest}`])
-        .map(dest => `
-            <div class="alert alert-info">
-                <h6><i class="bi bi-globe"></i> ${dest.replace('_', ' ')} Requirements</h6>
-                <p class="mb-0">${commodity[`Destination_${dest}`]}</p>
-            </div>
-        `).join('');
-    
-    if (destinationContent) {
-        modalContent += `
-            <div class="mt-4">
-                <h6>Destination Requirements</h6>
-                ${destinationContent}
-            </div>
-        `;
-    }
+    // Build modal content
+    let modalContent = buildCommodityDetailHTML(commodity);
     
     // Set modal content
-    document.getElementById('modalTitle').textContent = `${commodity.Commodity_Name || 'Commodity'} Details`;
+    document.getElementById('modalTitle').textContent = `${commodity.common_name} - Complete Export Intelligence`;
     document.getElementById('modalBody').innerHTML = modalContent;
     
     // Show modal
@@ -307,89 +212,285 @@ function showCommodityDetail(hsCode) {
     modal.show();
 }
 
-// Load transit times
-function loadTransitTimes() {
-    if (!transitTable) return;
-    
-    const transitData = [
-        { from: 'Cape Town', to: 'Rotterdam', days: '18-20', carriers: 'MSC, Maersk', status: 'Normal' },
-        { from: 'Cape Town', to: 'Antwerp', days: '19-21', carriers: 'Maersk, CMA CGM', status: 'Normal' },
-        { from: 'Cape Town', to: 'Jebel Ali', days: '14-16', carriers: 'MSC, Hapag-Lloyd', status: 'Busy' },
-        { from: 'Cape Town', to: 'Shanghai', days: '28-30', carriers: 'Maersk, MSC', status: 'Congested' },
-        { from: 'Cape Town', to: 'Philadelphia', days: '24-26', carriers: 'MSC, Maersk', status: 'Normal' },
-        { from: 'Durban', to: 'Rotterdam', days: '22-24', carriers: 'CMA CGM, MSC', status: 'Normal' },
-        { from: 'Durban', to: 'Singapore', days: '12-14', carriers: 'All carriers', status: 'Normal' }
-    ];
-    
-    let html = '';
-    transitData.forEach(route => {
-        const statusClass = getStatusClass(route.status);
-        html += `
-            <tr>
-                <td>${route.from}</td>
-                <td>${route.to}</td>
-                <td><strong class="text-success">${route.days}</strong> days</td>
-                <td>${route.carriers}</td>
-                <td><span class="badge ${statusClass}">${route.status}</span></td>
-            </tr>
-        `;
-    });
-    
-    transitTable.innerHTML = html;
-}
-
-// Get status badge class
-function getStatusClass(status) {
-    switch(status.toLowerCase()) {
-        case 'normal': return 'bg-success';
-        case 'busy': return 'bg-warning';
-        case 'congested': return 'bg-danger';
-        default: return 'bg-secondary';
-    }
-}
-
-// Utility functions
-window.clearSearch = function() {
-    searchInput.value = '';
-    currentCategory = 'all';
-    categoryFilter.value = 'all';
-    performSearch('');
-};
-
-window.quickSearch = function(query) {
-    searchInput.value = query;
-    performSearch(query);
-};
-
-window.copyToClipboard = function(text) {
-    navigator.clipboard.writeText(text).then(() => {
-        // Show toast notification
-        const toast = document.createElement('div');
-        toast.className = 'position-fixed bottom-0 end-0 p-3';
-        toast.innerHTML = `
-            <div class="toast show" role="alert">
-                <div class="toast-header bg-success text-white">
-                    <strong class="me-auto"><i class="bi bi-check-circle"></i> Copied!</strong>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+// Build detailed commodity HTML
+function buildCommodityDetailHTML(commodity) {
+    let html = `
+        <div class="commodity-detail">
+            <!-- Header Section -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <table class="table table-sm">
+                        <tr><th>HS Code:</th><td><span class="badge bg-success">${commodity.hs_code}</span></td></tr>
+                        <tr><th>Commodity:</th><td>${commodity.common_name}</td></tr>
+                        <tr><th>Scientific Name:</th><td>${commodity.scientific_name}</td></tr>
+                        <tr><th>Afrikaans:</th><td>${commodity.afrikaans_name}</td></tr>
+                        <tr><th>Category:</th><td><span class="badge bg-info">${commodity.category}</span></td></tr>
+                    </table>
                 </div>
-                <div class="toast-body">
-                    HS Code <strong>${text}</strong> copied to clipboard
+                <div class="col-md-6">
+                    <div class="alert alert-success">
+                        <h6><i class="bi bi-shield-check"></i> Quick Actions</h6>
+                        <div class="d-flex flex-wrap gap-2 mt-2">
+                            <a href="https://phytclean.agric.za" target="_blank" class="btn btn-sm btn-warning">
+                                <i class="bi bi-search"></i> Check CBS (PhytClean)
+                            </a>
+                            <a href="${commodity.resources?.dalrrd_procedures || 'https://www.dalrrd.gov.za/'}" target="_blank" class="btn btn-sm btn-info">
+                                <i class="bi bi-file-text"></i> DALRRD Procedures
+                            </a>
+                            <a href="${commodity.resources?.ppecb_protocol || 'https://ppecb.com/'}" target="_blank" class="btn btn-sm btn-primary">
+                                <i class="bi bi-snow"></i> PPECB Protocols
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Technical Requirements -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0"><i class="bi bi-thermometer-half"></i> Technical Requirements</h6>
+                </div>
+                <div class="card-body">
+    `;
+    
+    if (commodity.technical) {
+        html += `
+            <div class="row">
+                <div class="col-md-6">
+                    <table class="table table-sm">
+                        <tr><th>Pulp Temperature:</th><td>${commodity.technical.temperature?.pulp_range || 'N/A'}</td></tr>
+                        <tr><th>Transit Temperature:</th><td>${commodity.technical.temperature?.transit || 'N/A'}</td></tr>
+                        <tr><th>Storage Temperature:</th><td>${commodity.technical.temperature?.storage || 'N/A'}</td></tr>
+                        <tr><th>Humidity:</th><td>${commodity.technical.humidity || 'N/A'}</td></tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <table class="table table-sm">
+                        <tr><th>Shelf Life:</th><td>${commodity.technical.shelf_life || 'N/A'}</td></tr>
+                        <tr><th>Packaging:</th><td>${commodity.technical.packaging || 'Standard'}</td></tr>
+                        <tr><th>Ethylene:</th><td>${commodity.technical.ethylene || 'Check specific requirements'}</td></tr>
+                        ${commodity.technical.temperature?.chilling_injury ? `
+                        <tr><th>Chilling Injury:</th><td>${commodity.technical.temperature.chilling_injury}</td></tr>
+                        ` : ''}
+                    </table>
                 </div>
             </div>
         `;
-        document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 3000);
-    });
-};
+    }
+    
+    html += `</div></div>`;
+    
+    // Quality Standards
+    if (commodity.quality) {
+        html += `
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0"><i class="bi bi-clipboard-check"></i> Quality Standards</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        ${commodity.quality.brix ? `
+                        <div class="col-md-4">
+                            <h6>Brix/Acid</h6>
+                            <p class="mb-1"><strong>Minimum:</strong> ${commodity.quality.brix.minimum}</p>
+                            <p class="mb-0"><strong>Optimum:</strong> ${commodity.quality.brix.optimum}</p>
+                        </div>
+                        ` : ''}
+                        
+                        ${commodity.quality.sizing ? `
+                        <div class="col-md-4">
+                            <h6>Sizing</h6>
+                            <p class="mb-1"><strong>Method:</strong> ${commodity.quality.sizing.method}</p>
+                            <p class="mb-0"><strong>Grades:</strong> ${commodity.quality.sizing.grades.join(', ')}</p>
+                        </div>
+                        ` : ''}
+                        
+                        ${commodity.quality.defects ? `
+                        <div class="col-md-4">
+                            <h6>Defect Tolerance</h6>
+                            <p class="mb-1"><strong>Total:</strong> ${commodity.quality.defects.max_total}</p>
+                            <p class="mb-0"><strong>Decay:</strong> ${commodity.quality.defects.max_decay}</p>
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Destination Requirements
+    if (commodity.destinations && Object.keys(commodity.destinations).length > 0) {
+        html += `
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0"><i class="bi bi-globe"></i> Destination Requirements</h6>
+                </div>
+                <div class="card-body">
+                    <div class="accordion" id="destinationAccordion">
+        `;
+        
+        Object.entries(commodity.destinations).forEach(([country, data], index) => {
+            const isFirst = index === 0;
+            html += `
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button ${isFirst ? '' : 'collapsed'}" type="button" 
+                                data-bs-toggle="collapse" data-bs-target="#collapse${country}${commodity.id}">
+                            <span class="badge bg-primary me-2">${country}</span>
+                            ${data.treatment?.type || 'Standard Requirements'}
+                            ${data.treatment?.pre_cooling === 'MANDATORY' ? 
+                              '<span class="badge bg-danger ms-2">Pre-cooling MANDATORY</span>' : ''}
+                        </button>
+                    </h2>
+                    <div id="collapse${country}${commodity.id}" 
+                         class="accordion-collapse collapse ${isFirst ? 'show' : ''}" 
+                         data-bs-parent="#destinationAccordion">
+                        <div class="accordion-body">
+                            <!-- Treatment Information -->
+                            ${data.treatment ? `
+                            <div class="alert alert-treatment mb-3">
+                                <h6><i class="bi bi-snow"></i> Treatment Required</h6>
+                                <p class="mb-1"><strong>Type:</strong> ${data.treatment.type}</p>
+                                <p class="mb-1"><strong>Protocol:</strong> ${data.treatment.protocol}</p>
+                                ${data.treatment.duration ? `<p class="mb-1"><strong>Duration:</strong> ${data.treatment.duration}</p>` : ''}
+                                ${data.treatment.pulp_temp ? `<p class="mb-1"><strong>Pulp Temp:</strong> ${data.treatment.pulp_temp}</p>` : ''}
+                                ${data.treatment.pre_cooling ? `
+                                <p class="mb-0">
+                                    <strong>Pre-cooling:</strong> 
+                                    <span class="badge ${data.treatment.pre_cooling === 'MANDATORY' ? 'bg-danger' : 'bg-warning'}">
+                                        ${data.treatment.pre_cooling}
+                                    </span>
+                                </p>
+                                ` : ''}
+                            </div>
+                            ` : ''}
+                            
+                            <!-- Documents Required -->
+                            ${data.documents && data.documents.length > 0 ? `
+                            <div class="alert alert-phyto mb-3">
+                                <h6><i class="bi bi-file-text"></i> Required Documents</h6>
+                                <ul class="mb-0">
+                                    ${data.documents.map(doc => `<li>${doc}</li>`).join('')}
+                                </ul>
+                            </div>
+                            ` : ''}
+                            
+                            <!-- Special Requirements -->
+                            ${data.special_requirements && data.special_requirements.length > 0 ? `
+                            <div class="alert alert-cbs">
+                                <h6><i class="bi bi-exclamation-triangle"></i> Special Requirements & Notes</h6>
+                                <ul class="mb-0">
+                                    ${data.special_requirements.map(req => `<li>${req}</li>`).join('')}
+                                </ul>
+                            </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        html += `</div></div></div>`;
+    }
+    
+    // Operational Notes
+    if (commodity.operational_notes) {
+        html += `
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0"><i class="bi bi-lightbulb"></i> Operational Notes & Best Practices</h6>
+                </div>
+                <div class="card-body">
+                    ${commodity.operational_notes.cbs_management ? `
+                    <div class="alert alert-warning">
+                        <h6><i class="bi bi-shield-exclamation"></i> CBS Management</h6>
+                        <p class="mb-0">${commodity.operational_notes.cbs_management}</p>
+                    </div>
+                    ` : ''}
+                    
+                    <div class="row">
+                        ${commodity.operational_notes.sa_provinces ? `
+                        <div class="col-md-6">
+                            <h6>SA Production Areas</h6>
+                            <p>${commodity.operational_notes.sa_provinces.join(', ')}</p>
+                        </div>
+                        ` : ''}
+                        
+                        ${commodity.operational_notes.seasonal_restrictions ? `
+                        <div class="col-md-6">
+                            <h6>Seasonal Restrictions</h6>
+                            <p>${commodity.operational_notes.seasonal_restrictions}</p>
+                        </div>
+                        ` : ''}
+                    </div>
+                    
+                    ${commodity.operational_notes.best_practices && commodity.operational_notes.best_practices.length > 0 ? `
+                    <div class="mt-3">
+                        <h6>Best Practices</h6>
+                        <ul>
+                            ${commodity.operational_notes.best_practices.map(practice => `<li>${practice}</li>`).join('')}
+                        </ul>
+                    </div>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+    }
+    
+    // Varieties
+    if (commodity.varieties && commodity.varieties.length > 0) {
+        html += `
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0"><i class="bi bi-tags"></i> Varieties</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Code</th>
+                                    <th>Name</th>
+                                    <th>Season</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${commodity.varieties.map(variety => `
+                                    <tr>
+                                        <td><code>${variety.code}</code></td>
+                                        <td>${variety.name}</td>
+                                        <td>${variety.season || 'Varies'}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    return html;
+}
 
-window.printCommodity = function() {
-    window.print();
-};
-
-window.showError = function(message) {
+// Show welcome view
+function showWelcomeView() {
+    const stats = window.commodityDatabase.getStats();
+    
     resultsContainer.innerHTML = `
-        <div class="alert alert-danger">
-            <i class="bi bi-exclamation-octagon"></i> ${message}
-        </div>
-    `;
-};
+        <div class="text-center py-5">
+            <i class="bi bi-database display-1 text-success opacity-25"></i>
+            <h4 class="mt-3 text-success">Perishable Commodity Intelligence Database</h4>
+            <p class="lead text-muted">Expert-curated export requirements for South African perishables</p>
+            
+            <div class="row mt-5">
+                <div class="col-md-4">
+                    <div class="card border-success">
+                        <div class="card-body">
+                            <h2 class="text-success">${stats.total}</h2>
+                            <p class="text-muted mb-0">Commodities</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class
